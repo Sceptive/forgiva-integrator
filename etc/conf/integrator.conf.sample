@@ -1,0 +1,232 @@
+#################################################
+#                                               #
+# Forgiva Integrator Sample Configuration File  #
+#                                               #
+# For Development Purposes Only !!!             #
+# Do not use the same password hashes and salts #
+# in production !!!                             #
+#################################################
+
+PRODUCTION_ENVIRONMENT      = false
+
+#  Logging ===========================================================================================  #
+#  LOGGING_OUTPUT_FORMAT:       Indicates which format will be used on logging outputs                  #
+#                               Available options: JSON or PLAIN                                        #
+#                               Default: PLAIN.                                                         #
+#  LOGGING_GENERATE_DEBUG_LOG:  If enabled creates debug.log in the log folder                          #
+#  LOGGING_MAX_LOG_SIZE:        When file size exceeds the specified amount then rolls the file         #
+#                               to a file with timestamp and creates a new file. Size can include K, M  #
+#                               and G values respectively to Kilobyte, MegaByte and GigaByte            #
+#  ===================================================================================================  #
+
+LOGGING_GENERATE_DEBUG_LOG  = true
+LOGGING_MAX_LOG_SIZE        = 100M
+LOGGING_OUTPUT_FORMAT       = PLAIN
+
+#  Database===========================================================================================  #
+#  DB_JDBC_DRIVER:              Standard JPA 2.0 JDBC driver class name for JSE deployments             #
+#  DB_JDBC_URL:                 Standard JPA 2.0 JDBC URL for JSE deployments                           #
+#                               May include #{DB_HOME} variable to indicate absolute db path relative   #
+#                               to Integrator home path for file databases (such as Sqlite, H2 etc.)    #
+#  DB_JDBC_USER:                Database user                                                           #
+#  DB_JDBC_PASSWORD:            Database password                                                       #
+#  ===================================================================================================  #
+#  For H2
+#  DB_JDBC_DRIVER              = org.h2.Driver                                                          #
+#  DB_JDBC_URL                 = jdbc:h2:mem:test                                                       #
+#  DB_JDBC_USER                = admin                                                                  #
+#  DB_JDBC_PASSWORD            = admin                                                                  #
+#                                                                                                       #
+#  DB_JDBC_DRIVER              = org.postgresql.Driver													#
+#  DB_JDBC_URL                 = jdbc:postgresql://localhost:5432/postgres								#
+#  DB_JDBC_USER                = postgres																#
+#  DB_JDBC_PASSWORD            = 																		#
+# 																										#
+#  ==================================================================================================== #
+
+DB_JDBC_DRIVER              = org.h2.Driver
+DB_JDBC_URL                 = jdbc:h2:~/forgiva_integrator.db;AUTO_SERVER=TRUE
+DB_JDBC_USER                = admin
+DB_JDBC_PASSWORD            = admin
+
+#  Administrator Credentials ========================================================================== #
+#                                                                                                       #
+#  As a security precaution for Administrator credentials for cases on any database breaches we hold it #
+#  in the configuration file for only file-system access.                                               #
+#                                                                                                       #
+#  ADMINISTRATOR_USERNAME:      User name for administrator account                                     #
+#  ADMINISTRATOR_PASSWORD:      Hashed and or derived password specified with SECURITY_PW_HASHING_MODEL.#
+#                               and SECURITY_DEFAULT_HASHING.                                           #
+#                               You can generate it by running bin/fhash.sh after defining model with   #
+#                               SECURITY_PW_HASHING_MODEL and SECURITY_DEFAULT_HASHING which will       #
+#                               generate it respective to SECURITY_HASHING_SALT parameter.              #
+#  ADMINISTRATOR_IP_ADDRESSES:  Ip addresses dedicated to administrator account. Multiple IPs can be    #
+#                               separated with comma (,) sign.                                          #
+#                                                                                                       #
+# ===================================================================================================== #
+# Default administrator name
+ADMINISTRATOR_USERNAME      = marcus
+# 'development' password hashed with development default parameters
+ADMINISTRATOR_PASSWORD      = d2d80fd2c2de02e888123521533b904845a087944f79fc697aeb8828163114229a1e78db5e73eee7996bfb68fa81b98920386cfcc30315c8db4a92dbf3282ae8
+ADMINISTRATOR_IP_ADDRESSES  = 127.0.0.1,0:0:0:0:0:0:0:1.
+
+#  Session Options  =================================================================================== #
+#                                                                                                       #
+# SESSION_LIFETIME                  Total lifetime for any client session initialized in minutes.       #
+#                                   Default: 24*60*30 (30 days)                                         #
+# LOGIN_MAX_RETRY                   Maximum login attempt permitted. If attempt count goes over this    #
+#                                   user gets banned for LOGIN_BAN_TIME minutes. Default: 3             #
+# LOGIN_BAN_TIME                    Period of time in minutes to ban. Default: 10                       #
+# ===================================================================================================== #
+
+SESSION_LIFETIME            =       43200
+
+LOGIN_MAX_RETRY             =       3
+LOGIN_BAN_TIME              =       10
+
+#  Security Options =================================================================================== #
+#                                                                                                       #
+#  !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!!  #
+#                                                                                                       #
+#  After setting security options and creating user(s) and setting administrator account, it will  not  #
+#  be possible to change the security options  without resetting all user and  administrator passwords  #
+#  because Forgiva Integrator DOES NOT saves any password to anywhere unless hashing  it with model(s)  #
+#  specified within this configuration file and it is not possible to backward the process.             #
+#                                                                                                       #
+#  !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!! CAUTION !!!  #
+#                                                                                                       #
+# SECURITY_PW_HASHING_MODEL:        Indicates the combination and/or definition of key derivation and   #
+#                                   hashing functions to hold hashes for various purposes. Order is     #
+#                                   important and you should separate algorithm definitions with plus   #
+#                                   (+) sign.                                                           #
+#                                   Available algorithms: SCRYPT, ARGON2, BCRYPT, SHA512, SHA384,       #
+#                                   SHA256, SHA3-512, SHA3-384, SHA3-256, BLAKE2B-512, BLAKE2B-384,     #
+#                                   BLAKE2B-256, SM3                                                    #
+#                                                                                                       #
+#                                   You can use any algorithm more than once.                           #
+#                                   For example: SCRYPT+ARGON2 or BCRYPT+ARGON2+SHA512.                 #
+#                                   Default: SHA512+SCRYPT+ARGON2                                       #
+#                                                                                                       #
+# SECURITY_PW_HASHING_SALT:        	Salt to get used for hashing purposes with hashing model. Should be #
+#                                   random and unique                                                   #
+#                                                                                                       #
+# SECURITY_DEFAULT_HASHING:         Default hashing algorithm to use on necessary steps.                #
+#                                   Available algorithms: SHA512, SHA384,SHA256, SHA3-512, SHA3-384,    #
+#                                   SHA3-256, BLAKE2B-512, BLAKE2B-384, BLAKE2B-256, SM3                #
+#                                   Default: SHA3-512                                                   #
+#                                                                                                       #
+# SECURITY_DEFAULT_HASHING_SALT:    Default hashing salt to get used in . Should be random and unique.  #
+#                                                                                                       #
+# ARGON2_PARAMETERS:                Argon2_i algorithm parameters separated with colon (:) characters.  #
+#                                   Definition:  ITERATIONS:MEMORY:PARALLELIZATION                      #
+#                                   Default: 3:12:1                                                     #
+#                                   Please refer to https://github.com/P-H-C/phc-winner-argon2 for more #
+#                                   details.                                                            #
+#                                                                                                       #
+# SCRYPT_PARAMETERS:                SCrypt algorithm parameters separated with colon (:) characters.    #
+#                                   Definition:  MEMORY:BLOCK_SIZE:PARALELIZATION                       #
+#                                   Default: 131072:8:1                                                 #
+#                                                                                                       #
+# BCRYPT_COST:                      BCrypt algorithm parameter which grows the cost of the function as  #
+#                                   2^cost. Legal values are 4..31 inclusive                            #
+#                                   Default: 4                                                          #
+#                                                                                                       #
+# Password Usage Configuration ======================================================================== #
+#                                                                                                       #
+# SECURITY_PW_MIN_ENTROPY:          Minimum password entropy bits.A password entropy indicates strength #
+#                                   against raw brute-force attacks. Minimum of 64-bit entropy required #
+#                                   by default.forgiva_integrator                                       #
+#                                                                                                       #
+# SECURITY_PW_PROHIBITED_WORDLIST:  Blacklisted words and/or password samples which will get prohibited #
+#                                   by the Forgiva Integrator. It should be in .gz / .bz2 / .7z or .xz  #
+#                                   format file placed in the conf directory.                           #
+#  ===================================================================================================  #
+
+SECURITY_PW_MIN_ENTROPY         = 64
+SECURITY_PW_PROHIBITED_WORDLIST = default_blacklisted_pwds.txt.xz
+
+SECURITY_PW_HASHING_MODEL       = SHA512+SCRYPT+ARGON2
+SECURITY_PW_HASHING_SALT        = 464f52474956415f494e5445475241544f525f44454641554c545f4845585f56414c55455f464f525f53414c545f504c454153455f4348414e47455f54484953
+SECURITY_DEFAULT_HASHING        = SHA3-512
+SECURITY_DEFAULT_HASHING_SALT   = d6fa63bb5bde801a013645292eb1124cb57ac7cd72b75ab7461300870282763938127dd85daee3c64c33c866f20f01c8420a3b3345ede510f940df186f38ec19
+
+SECURITY_SSL_TRUSTSTORE         = cert/fi_test_truststore.jks
+SECURITY_SSL_TRUSTSTORE_PASSWORD= do_not_use_in_production
+
+ARGON2_PARAMETERS           = 3:12:1
+SCRYPT_PARAMETERS           = 131072:8:1
+BCRYPT_COST                 = 4
+
+#  HTTPS Configuration================================================================================= #
+#                                                                                                       #
+#  HTTPS_PORT:                      Port number of HTTPS gateway.                                       #
+#  HTTPS_HOST:                      Host to bind port to.                                               #
+#  HTTPS_SSL_KEYSTORE_FILE:         .JKS KeyStore file containing SSL Keys Respective to conf directory #
+#  HTTPS_SSL_KEYSTORE_PASS:         .JKS KeyStore file password                                         #
+#  HTTPS_SSL_KEYSTORE_PASS:         Certificate password located in JKS File                            #
+#                                                                                                       #
+# ===================================================================================================== #
+
+HTTPS_PORT              = 8443
+HTTPS_HOST              = 0.0.0.0
+HTTPS_SSL_KEYSTORE_FILE = cert/fi_test_keystore.jks
+HTTPS_SSL_KEYSTORE_PASS = do_not_use_in_production
+HTTPS_SSL_CERT_PASS     = do_not_use_in_production
+
+# LDAP Configuration ================================================================================== #
+#                                                                                                       #
+#  LDAP_SERVER:                     LDAP Servers with ldap:// or ldaps:// headers separated with commas #
+#                                   to enable login over ldap                                           #
+#  LDAP_DOMAIN:                     Domain Name to use filtering out user details on LDAP server        #
+#                                                                                                       #
+#  ===================================================================================================  #
+
+# LDAP_SERVER = ldaps://localhost
+# LDAP_DOMAIN = SAMDOM
+
+
+# Forgiva Server Configuration ======================================================================== #
+#                                                                                                       #
+#  FS_HOSTS:                        Comma seperated list of Forgiva Servers (host:port) running.        #
+#                                   to enable login over ldap                                           #
+#  FS_RUNNER_PARALELIZATION:        Number of parallel jobs to seek Forgiva Server to fulfill demand    #
+#  FS_EMBEDDED:                     Integrator runs Forgiva Server embedded if found in bin/ directory  #
+#                                                                                                       #
+# ===================================================================================================== #
+
+# FS_HOSTS                 	= 127.0.0.1:3000
+FS_RUNNER_PARALELIZATION 	= 8
+FS_EMBEDDED              	= true
+
+# Mailing Configuration =============================================================================== #
+#                                                                                                       #
+# SMTP_SERVER:                      Mail server address starts with smtp://, smtps:// or stmp_tls://    #
+#                                   combined with host:port couple.                                     #
+#                                                                                                       #
+#                                   smtp:// Uses plaintext handshake when  mail server doesn't indicate #
+#                                   support for STARTTLS. Additionally, even if a TLS session is        #
+#                                   negotiated server certificates does not get validated.              #
+#                                                                                                       #
+#                                   smtps:// SMTP entirely encapsulated by TLS.                         #
+#                                   Strict validation of server certificates is enabled. Server certs.  #
+#                                   must be issued either by a certificate authority in the system      #
+#                                   trust store; or to a subject matching the identity of the remote    #
+#                                   SMTP server.                                                        #
+#                                                                                                       #
+#                                   smtps_tls:// Plaintext SMTP with a mandatory, authenticated         #
+#                                   STARTTLS upgrade. Server certs. controls are same with smtps.       #
+#                                                                                                       #
+# SMTP_USERNAME:                    Username to authenticate SMTP server                                #
+# SMTP_PASSWORD:                    Password to use for smtp authentication                             #
+# SMTP_FROM:                        "From" address to get used in mail sender part                      #
+#                                                                                                       #
+# SMTP_PROXY_HOST:                  Proxy host with port combination (host:port) to access mail server  #
+# SMTP_PROXY_USERNAME:              Username to authenticate proxy                                      #
+# SMTP_PROXY_PASSWORD:              Password to use in proxy authentication                             #
+#                                                                                                       #
+#  ===================================================================================================  #
+
+#  SMTP_SERVER = smtp://localhost
+#  SMTP_FROM   = forgiva_integrator@company.com
+#  SMTP_USERNAME   = guest
+#  SMTP_PASSWORD   = guest

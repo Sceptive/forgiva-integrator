@@ -1,0 +1,1476 @@
+openapi: 3.0.0
+info:
+  title: IntegratorAPI
+  version: '1.0'
+  description: Forgiva Integrator API containing whole operations between Forgiva SuperClient and Integrator server traffic. It can be used by any 3rd party clients.
+  contact:
+    name: Harun Esur
+    email: root@sceptive.com
+    url: 'https://www.forgiva.com'
+servers:
+  - url: 'https://localhost:8443/api/'
+paths:
+  /new_session:
+    post:
+      summary: Initialization or validation of a session
+      operationId: post-new-session
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                title: post-new-session-response
+                properties:
+                  logonState:
+                    $ref: '#/components/schemas/logonState'
+                  hshAlg:
+                    type: string
+                    description: Hashing algorithm chosen by server required to get used by client to provide hashed data to the server.
+                  hshSalt:
+                    type: string
+                    description: Unique salt value tied with session which will be required to get used with hash algorithm on the client side.
+                  sessionPk:
+                    type: string
+                    description: Session public key to encrypt critical data.
+                  newSessionId:
+                    type: string
+                    description: Returns null if sessionId is valid or new sessionId for renewal or initialization.
+                  ldapEnabled:
+                    type: boolean
+                    description: Returns whether LDAP login is enabled or not
+              examples:
+                session-response-example:
+                  value:
+                    authenticated: false
+                    hshAlg: sha3
+                    hshSalt: 85a37bcfe6c0cc6e81f073002d9aa59062c3fe5e463e07463672e
+                    sessionPk: 85a37bcfe6c0cc6e81f073002d9aa59062c3fe5e463e07463672e
+          headers: {}
+      description: This service initializes session or validates it (by checking header object) and provides server configuration values to the client.
+      requestBody:
+        description: If client has any sessionId value it should provide it to validate whether it is still usable or expired.
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-new-session-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                clientPk:
+                  type: string
+                  description: Client public key for server to encrypt critical data to be sent to client.
+      security: []
+      parameters: []
+    parameters: []
+  /login:
+    post:
+      summary: Login
+      operationId: post-login
+      responses:
+        '304':
+          description: Session is already authenticated.
+        '200':
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logonState:
+                    $ref: '#/components/schemas/logonState'
+                  twoFARequired:
+                    type: boolean
+                    description: 2FA service is required or not.
+                title: post-login-response
+        '440':
+          description: Session Expired
+      description: Actual logging-in web service holds single point authentication mechanism.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-login-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                username:
+                  type: string
+                  description: User name encrypted with session public key
+                password:
+                  type: string
+                  description: Hash of password encrypted with session public key.
+                loginOverLdap:
+                  type: boolean
+                  description: Requests login over LDAP servers
+        description: ''
+      security: []
+  /logout:
+    post:
+      summary: Logout
+      operationId: post-logout
+      responses:
+        '200':
+          description: OK
+          headers: {}
+      description: Logs out (and invalidates) session with sessionId
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-logout-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+        description: ''
+      security: []
+  /login2fa:
+    post:
+      summary: Login with two-factor-authentication
+      operationId: post-login2fa
+      responses:
+        '200':
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    description: Points out whether authentication is succedded or not.
+                title: post-login2fa-response
+        '440':
+          description: Session Expired
+      description: Two-factor-authentication (2FA) code delivery web service. Not required by default if did not configured on server side.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-login2fa-request
+              properties:
+                twoFACode:
+                  type: string
+                  description: 2FA code hashed with specified hash algorithm in /session service.
+                header:
+                  $ref: '#/components/schemas/header'
+      security: []
+  /user/metadata/groups:
+    post:
+      summary: Retrieving metadata groups
+      tags:
+        - User Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/metadataGroup'
+                title: post-user-metadata-groups-response
+              examples: {}
+      operationId: post-user-metadata-groups
+      security: []
+      description: Returns metadata groups for the user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-metadata-groups-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+    parameters: []
+  /user/metadata/by_group:
+    post:
+      summary: Retrieving metadata
+      tags:
+        - User Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadatas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/metadata'
+                  totalRecords:
+                    type: integer
+                    description: Total number of records of metadata within the group.
+                  startIdx:
+                    type: integer
+                    description: Start index of the records returned.
+                title: post-user-metadata-bygroup-response
+              examples:
+                example-1: {}
+      operationId: post-user-metadata-bygroup
+      security: []
+      description: Returns metadatas for the user.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-metadata-bygroup-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                groupId:
+                  type: string
+                  description: Group id contains metadatas.
+                startIdx:
+                  type: integer
+                  description: Start index of the records. (Default is 0)
+                count:
+                  type: integer
+                  description: Amount of records to return starting from startIdx. (Default is 100)
+  /user/metadata/remove:
+    post:
+      summary: Removing metadata
+      tags:
+        - User Operations
+      operationId: post-user-metadata-remove
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+      description: Removes metadata specified with metadata id.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title:  post-user-metadata-remove-request
+              properties:
+                metadataId:
+                  type: string
+                header:
+                  $ref: '#/components/schemas/header'
+              required:
+                - metadataId
+        description: Specifies metadata id to get removed.
+    parameters: []
+  /user/metadata/host:
+    post:
+      summary: Retrieving metadata host
+      tags:
+        - User Operations
+      operationId: post-user-metadata-host
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hosts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        host:
+                          type: string
+                title: post-user-metadata-host-response
+      description: Returns hosts (if specified) filtered
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-metadata-host-request
+              properties:
+                filter:
+                  type: string
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies host filter if required.
+    parameters: []
+  /user/metadata/search:
+    post:
+      summary: Searching metadata
+      tags:
+        - User Operations
+      operationId: post-user-metadata-search
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/metadata'
+                title: post-user-metadata-search-response
+      description: "Returns metadatas searched with 'criteria'."
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-metadata-search-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                criteria:
+                  type: string
+                  description: Criteria to search within metadatas.
+              required:
+                - criteria
+        description: Specifies search criteria.
+    parameters: []
+  /user/metadata/add:
+    post:
+      summary: Adding metadata
+      tags:
+        - User Operations
+      operationId: post-user-metadata-add
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+      description: Adds metadata to the specified group.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-metadata-add-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                metadata:
+                  $ref: '#/components/schemas/metadata'
+                passwordLength:
+                  type: integer
+                  description: Password length of the generated password.
+                optUppercase:
+                  type: boolean
+                  description: Password should have upper case letters.
+                optLowercase:
+                  type: boolean
+                  description: Password should have lower case letters.
+                optNumbers:
+                  type: boolean
+                  description: Password should have numbers.
+                optSymbols:
+                  type: boolean
+                  description: Password should have symbols.
+              required:
+                - groupId
+                - metadata
+                - passwordLength
+                - optUppercase
+                - optLowercase
+                - optNumbers
+                - optSymbols
+        description: Specifies metadata to get added to the specified group with id.
+    parameters: []
+  /user/settings/get:
+    post:
+      summary: Getting user's choices
+      tags:
+        - User Operations
+      operationId: post-user-settings-get
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: string
+                    description: Value of the setting queried by the key in request
+                required:
+                  - value
+                title: post-user-settings-get-response
+      description: Getting user's custom settings set by user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-settings-get-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                key:
+                  type: string
+                  description: Setting key to query
+        description: Specifing key to query for setting
+    parameters: []
+  /user/settings/set:
+    post:
+      summary: Setting user's choices
+      tags:
+        - User Operations
+      operationId: post-user-settings-set
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+      description: Setting user's custom setting value
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-settings-set-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                key:
+                  type: string
+                  description: Setting key
+                value:
+                  type: string
+                  description: Setting value to get saved
+        description: Specifing key and value to set for user's settings
+    parameters: []
+  /user/password/change:
+    parameters: []
+    post:
+      summary: Changing user's password
+      tags:
+        - User Operations
+      operationId: post-user-password-change
+      description: Changes user's password with specified ones and invalidates all active sessions.
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-password-change-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                oldPassword:
+                  type: string
+                  description: User's old password encrypted with session key
+                newPassword:
+                  type: string
+                  description: User's new password encrypted with session key
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+  /user/generate:
+    post:
+      summary: Generating password
+      tags:
+        - User Operations
+      operationId: post-user-generate
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    $ref: '#/components/schemas/operationResult'
+                  generatedPassword:
+                    type: string
+                    description: Generated password in hex representation.
+                required:
+                  - result
+                  - generatedPassword
+                title: post-user-generate-response
+      description: 'Generates password specified with metadata, master password and visual confirmation data.'
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-generate-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                metadataId:
+                  type: string
+                masterKey:
+                  type: string
+                  description: Hex of encrypted master key with session public key.
+                visualConfirmation:
+                  type: string
+                  description: Hex of the encrypted visual confirmation data with public session key.
+                renewalDate:
+                  type: string
+              required:
+                - metadataId
+                - masterKey
+                - visualConfirmation
+        description: Specifies required datas to generate passsword.
+    parameters: []
+  /user/metadata/group/remove:
+    post:
+      summary: Removing metadata group
+      tags:
+        - User Operations
+      operationId: post-user-metadata-group-remove
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+      description: Removes metadata group specified with group id.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-metadata-group-remove-request
+              properties:
+                metadataGroupId:
+                  type: string
+                header:
+                  $ref: '#/components/schemas/header'
+              required:
+                - metadataGroupId
+        description: Specifies group id to get removed.
+    parameters: []
+  /user/metadata/group/add:
+    post:
+      summary: Adding metadata group
+      tags:
+        - User Operations
+      operationId: post-user-metadata-group-add
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+      description: Adds metadata group specified within the body
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-metadata-group-add-request
+              properties:
+                group:
+                  $ref: '#/components/schemas/metadataGroup'
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies group data to get added. groupId should be null.
+    parameters: []
+  /admin/system_information:
+    post:
+      summary: Getting server system information
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  operatingSystem:
+                    type: string
+                  processorInformation:
+                    type: string
+                  timeOnSystem:
+                    type: string
+                  systemUptime:
+                    type: string
+                  forgivaVersion:
+                    type: string
+                  hostname:
+                    type: string
+                  ipConfiguration:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        device:
+                          type: string
+                        ipv4:
+                          type: string
+                        ipv6:
+                          type: string
+                        mac:
+                          type: string
+                  javaEnvironment:
+                    type: string
+                  enabledFeatures:
+                    type: object
+                    properties:
+                      activeDirectory:
+                        type: boolean
+                title: post-admin-systeminformation-response
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-systeminformation
+      description: Returns system information data
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-systeminformation-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+  /admin/resource_usage:
+    post:
+      summary: Getting resource usage data
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cpuUsagePercentage:
+                    type: string
+                    description: ''
+                  totalMemory:
+                    type: string
+                    description: Total memory in MB.
+                  usedMemory:
+                    type: string
+                    description: Used memory in MB.
+                  totalDiskspace:
+                    type: string
+                    description: Total disk space in MB.
+                  usedDiskspace:
+                    type: string
+                    description: Used disk space in MB.
+                  cpuUsageByHour:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        hour:
+                          type: string
+                          description: 'Date-time in YYYY-mm-dd HH:MM format.'
+                        percentage:
+                          type: integer
+                  cpuUsageByDay:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        day:
+                          type: string
+                          description: 'Date-time in YYYY-mm-dd HH:MM format.'
+                        percentage:
+                          type: integer
+                  totalUsers:
+                    type: string
+                    description: Total users of Forgiva Enterprise including LDAP users.
+                  totalUniqueHosts:
+                    type: string
+                    description: Total unique host count recorded in the database.
+                  databaseSize:
+                    type: string
+                    description: Total database size in MB.
+                  averagePasswordGenerationTime:
+                    type: string
+                    description: Average password generation time in seconds.
+                  serverPingTime:
+                    type: string
+                    description: Forgiva Server ping time in MS.
+                  averageDatabaseResponseTime:
+                    type: string
+                    description: If database is on remote average response time in MS.
+                title: post-admin-resourceusage-response
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-resourceusage
+      description: Returns resource usage data on the fly
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-resourceusage-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+  /admin/user_group/remove:
+    post:
+      summary: Removing user group
+      tags:
+        - Administrator Operations
+      operationId: post-admin-usergroup-remove
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      description: Removes user group specified with group id.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-usergroup-remove-request
+              properties:
+                userGroupId:
+                  type: string
+                header:
+                  $ref: '#/components/schemas/header'
+              required:
+                - userGroupId
+        description: Specifies group id to get removed.
+    parameters: []
+  /admin/user_group/add:
+    post:
+      summary: Adding user group
+      tags:
+        - Administrator Operations
+      operationId: post-admin-usergroup-add
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      description: Adds group specified within the body
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-usergroup-add-request
+              properties:
+                group:
+                  $ref: '#/components/schemas/userGroup'
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies group data to get added. groupId should be null.
+    parameters: []
+  /admin/user_groups:
+    post:
+      summary: Getting user groups
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userGroups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/userGroup'
+                title: post-admin-usergroups-response
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-usergroups
+      description: Return user groups.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-usergroups-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+  /admin/user/by_user_group:
+    post:
+      summary: Getting users by user group id
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/user'
+                  totalUserCount:
+                    type: integer
+                    description: Total number of users within specific group
+                title: post-admin-user-byusergroup-response
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-user-byusergroup
+      security: []
+      description: Returns user data by group id.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-user-byusergroup-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                userGroupId:
+                  type: string
+                  description:  User groupId contains other groups
+                startIdx:
+                  type: integer
+                  description:  Start index of the records. (Default is 0)
+                count:
+                  type: integer
+                  description:  Amount of records to return starting from startIdx. (Default is 100)
+  /admin/reports:
+    post:
+      summary: Listing available reports
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/report'
+                title: post-admin-reports-response
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-reports
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-reports-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+  /admin/user/update:
+    post:
+      summary: Updating user
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-user-update
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-user-update-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                user:
+                  $ref: '#/components/schemas/user'
+              required:
+                - user
+        description: User data to update with existing user id.
+    description: Updates user info.
+  /admin/user/add:
+    post:
+      summary: Adding a new user
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-user-add
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-user-add-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                user:
+                  $ref: '#/components/schemas/user'
+                userGroupId:
+                  type: integer
+                  description: User group id to add into.
+                password:
+                  type: string
+                  description: Hash of password encrypted with session public key.
+              required:
+                - user
+        description: User data to add.
+      description: Adds a new user described within the post body.
+  /admin/user_group/update:
+    post:
+      summary: Updating user group
+      tags:
+        - Administrator Operations
+      operationId: post-admin-usergroup-update
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      description: Updates user group specified within the body tagged with group id.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-usergroup-update-request
+              properties:
+                userGroup:
+                  $ref: '#/components/schemas/userGroup'
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies group data to get update. groupId should not be null.
+    parameters: []
+  /admin/user/remove:
+    post:
+      summary: Removing user
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-user-remove
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-user-remove-request
+              properties:
+                userId:
+                  type: string
+                  description: User group id to add into.
+                header:
+                  $ref: '#/components/schemas/header'
+        description: User data to add.
+      description: Removes user given in the body with user id.
+  /admin/hosts:
+    post:
+      summary: Getting hosts
+      tags:
+          - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hosts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/host'
+                title: post-admin-hosts-response
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-hosts
+      description: Return hosts.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-hosts-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+  /admin/host/add:
+    post:
+      summary: Adding host
+      tags:
+        - Administrator Operations
+      operationId: post-admin-host-add
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      description: Adds host specified within the body
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-host-add-request
+              properties:
+                host:
+                  $ref: '#/components/schemas/host'
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies host data to get added. hostId should be null.
+    parameters: []
+  /admin/host/remove:
+    post:
+      summary: Removing host
+      tags:
+        - Administrator Operations
+      operationId: post-admin-host-remove
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      description: Removes host specified with host id.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-host-remove-request
+              properties:
+                hostId:
+                  type: string
+                header:
+                  $ref: '#/components/schemas/header'
+              required:
+                - hostId
+        description: Specifies host id to get removed.
+      parameters: []
+  /admin/host/update:
+    post:
+      summary: Updating host
+      tags:
+        - Administrator Operations
+      operationId: post-admin-host-update
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      description: Updates host specified within the body tagged with host id.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-host-update-request
+              properties:
+                host:
+                  $ref: '#/components/schemas/host'
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies host data to get update. hostId should not be null.
+    parameters: []
+  /admin/applications/by_host:
+    post:
+      summary: Getting applications
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/application'
+                title: post-admin-applications-response
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-applications
+      description: Return applications.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-applications-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                hostId:
+                  type: integer
+                  description: If Host id is null getting whole applications.If there is a specified Host id just fetch it's applications.
+                startIdx:
+                  type: integer
+                  description:  Start index of the records. (Default is 0)
+                count:
+                  type: integer
+                  description:  Amount of records to return starting from startIdx. (Default is 100)
+  /admin/application/add:
+    post:
+      summary: Adding a new application
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-application-add
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-application-add-request
+              properties:
+                header:
+                  $ref: '#/components/schemas/header'
+                application:
+                  $ref: '#/components/schemas/application'
+                hostId:
+                  type: integer
+                  description: Host id to add into.
+              required:
+                - application
+        description: Application data to add.
+      description: Adds a new application described within the post body.
+  /admin/application/remove:
+    post:
+      summary: Removing application
+      tags:
+        - Administrator Operations
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      operationId: post-admin-application-remove
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-application-remove-request
+              properties:
+                applicationId:
+                  type: string
+                  description: Specifies application id to get removed.
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Application data to remove.
+      description: Removes application given in the body with application id.
+  /admin/application/update:
+    post:
+      summary: Updating application
+      tags:
+        - Administrator Operations
+      operationId: post-admin-application-update
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+        '401':
+          description: Returns if user does not have admin rights.
+      description: Updates application specified within the body tagged with application id.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-admin-application-update-request
+              properties:
+                application:
+                  $ref: '#/components/schemas/application'
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies application data to get update. applicationId should not be null.
+    parameters: []
+components:
+  schemas:
+    metadataGroup:
+      title: metadataGroup
+      type: object
+      description: Contains metadata group data specified with tree model.
+      properties:
+        groupId:
+          type: string
+          description: Unique group id.
+        groupName:
+          type: string
+          description: "Group name such as 'Mail Accounts' or 'CRM Accounts'."
+        parentGroupId:
+          type: string
+          description: Parent group id.
+        groupDescription:
+          type: string
+          description: "Description of the group such as 'Internal mail accounts' or '3rd party CRM application accounts'."
+    metadata:
+      title: metadata
+      type: object
+      x-examples: {}
+      description: Contains metadata information.
+      properties:
+        metadataId:
+          type: string
+          description: Unique metadata id
+        host:
+          type: string
+          description: Host description of the metadata.
+        account:
+          type: string
+          description: Account of the metadata.
+        lastRenewal:
+          type: string
+          description: Last renewal date for the metadata for password generation.
+        complexity:
+          type: integer
+          description: Complexity range 1-3 for password generation.
+        generatedBefore:
+          type: boolean
+          description: Indicates whether password generated before or not. If not password generation process should ensure that user is entering master password right.
+        groupId:
+          type: string
+          description: Unique group id.
+      required:
+        - host
+        - account
+        - complexity
+    userGroup:
+      title: userGroup
+      type: object
+      properties:
+        userGroupId:
+          type: string
+        userGroupName:
+          type: string
+        parentUserGroupId:
+          type: string
+        userGroupDescription:
+          type: string
+      description: Contains users group data specified with tree model.
+    user:
+      title: user
+      type: object
+      properties:
+        userId:
+          type: integer
+        fullName:
+          type: string
+        userName:
+          type: string
+        email:
+          type: string
+        lastLogin:
+          type: string
+        lastLoginIp:
+          type: string
+        externalUser:
+          type: boolean
+    operationResult:
+      title: operationResult
+      type: object
+      properties:
+        error:
+          type: string
+          description: In case of any error returns error message.
+        info:
+          type: string
+          description: For any additional info message may need to get shown to the user
+        affectedRecords:
+          type: array
+          items:
+            type: string
+            description: Unique ID of affected record
+          description: In case of any data operation this returns id's of records. On adding new data this returns new record ids
+    report:
+      title: report
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        columns:
+          type: array
+          items:
+            type: string
+    host:
+      title: host
+      type: object
+      properties:
+        hostId:
+          type: integer
+        hostName:
+          type: string
+        dnsName:
+          type: string
+        operatingSystemName:
+          type: string
+        operatingSystemVersion:
+          type: string
+        description:
+          type: string
+        reserved1:
+          type: string
+        reserved2:
+          type: string
+        reserved3:
+          type: string
+    application:
+      title: application
+      type: object
+      properties:
+        hostId:
+          type: integer
+        applicationId:
+          type: integer
+        applicationName:
+          type: string
+        version:
+          type: string
+        portRunning:
+          type: string
+        loginPageURL:
+          type: string
+        homePageURL:
+          type: string
+        monitoringFingerprint:
+          type: string
+        reserved1:
+          type: string
+        reserved2:
+          type: string
+        reserved3:
+          type: string
+    header:
+      title: header
+      type: object
+      properties:
+        sessionId:
+          type: string
+        clientAgent:
+          type: string
+    logonState:
+      title: logonState
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+          description: If client is already authenticated returns true.
+        isAdmin:
+          type: boolean
+          description: Return true if user has administrator rights.
+  securitySchemes: {}

@@ -1,0 +1,14 @@
+dependency-reduced-pom.xml
+.idea
+*.iml
+.openapi-generator*
+target
+test-run
+etc/conf/integrator.conf
+.classpath
+.factorypath
+.project
+.settings/
+derby.log
+forgiva_integrator.db/
+pom.xml.versionsBackup

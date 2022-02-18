@@ -5,16 +5,12 @@ set -e
 FORGIVA_HOME=$(dirname $(realpath ${BASH_SOURCE[0]}))
 TAGV=`git describe --tags --long || echo -n 'main'`
 REV=`(git log --oneline | wc -l | tr -d ' ') || echo -n '0'`
-VER=${TAGV%%-*}-$REV
+VER="${TAGV%%-*}-${REV}"
 
-PROJECT_VERSION=$(mvn -q \
-    -Dexec.executable=echo \
-    -Dexec.args='${project.version}' \
-    --non-recursive \
-    exec:exec)
+
 FORGIVA_SERVER_DIR="${FORGIVA_HOME}/server/forgiva.server"
 FORGIVA_SERVER_URL="https://github.com/Sceptive/forgiva-server/releases/download/r1/forgiva_server-r1-3-linux-x86_64-release.tar.xz"
-BUILD_DIR="${FORGIVA_HOME}/target/deploy/${VER}/"
+BUILD_DIR="${FORGIVA_HOME}/build/deploy/${VER}/"
 WEBCLIENT_DIR=$BUILD_DIR/client/web/
 WEBCLIENT_URL="https://github.com/Sceptive/forgiva-webclient/releases/download/r1/forgiva_webclient-r1-1-release.tar.xz"
 BIN_DIR=$BUILD_DIR/bin/
@@ -24,11 +20,7 @@ CONF_FILE="${FORGIVA_HOME}/etc/conf/integrator.conf"
 CONF_FILE_SAMPLE="${FORGIVA_HOME}/etc/conf/integrator.conf.sample"
 
 
-
-if  [ "$VER" !=  "$PROJECT_VERSION" ]; then
-  echo "Updating new version"
-  mvn versions:set -DnewVersion="$VER"
-fi
+echo "Build Directory: ${BUILD_DIR}"
 
 if [ ! "$*" == "release" ]; then
   if [ ! -f "$CONF_FILE" ]; then
@@ -38,7 +30,8 @@ fi
 
 
 # Synchronizing Forgiva Server binaries
-(mkdir -p $BIN_DIR &&
+( echo "Synchronizin binaries" &&
+  mkdir -p $BIN_DIR &&
   cd $BIN_DIR && ( curl -L "${FORGIVA_SERVER_URL}" | tar Jxvf - ) ) || { \
     echo "Could not sync Forgiva Server binaries" ; exit 1 ; }
 
@@ -74,11 +67,11 @@ fi
 
 if [[ "$*" == "release" ]] || [[ "$*" == "image" ]]; then
   TARGET_FILE=forgiva_integrator-$VER-jvm8-release.tar.xz
-  (mvn package &&
+  (sh ./gradlew build &&
     chmod +x $BUILD_DIR/bin/*.sh &&
     chmod +x $BUILD_DIR/bin/forgiva_server* &&
     cp "$CONF_FILE_SAMPLE" "$BUILD_DIR/conf/integrator.conf" &&
-    cd target/deploy &&
+    cd build/deploy &&
     rm -rf "$VER/data" "$VER/log" &&
     XZ_OPT=-9e  tar cJvf ../../$TARGET_FILE "$VER" )
 
@@ -89,18 +82,18 @@ if [[ "$*" == "release" ]] || [[ "$*" == "image" ]]; then
 
 elif [ "$*" == "test" ]; then
 
-  (mvn test || { echo "Failed Maven tests"} ; exit 1 ; })
+  (sh ./gradlew test  || { echo "Failed Maven tests"} ; exit 1 ; })
 
 elif [ "$*" == "uidev" ]; then
 
-(mvn -DskipTests package &&
+(sh ./gradlew build -xtest &&
   chmod +x $BIN_DIR/*.sh &&
   chmod +x $BIN_DIR/forgiva_server* &&
   FORGIVA_WC_ROOT_DIR=$WEBCLIENT_SRC_DIR/dist/ $BUILD_DIR/bin/forgiva_integrator.sh)
 
 elif [ "$*" == "run" ]; then
 
-  (mvn -DskipTests package &&
+  (sh ./gradlew build -xtest  &&
   chmod +x $BIN_DIR/*.sh &&
   chmod +x $BIN_DIR/forgiva_server* &&
   $BUILD_DIR/bin/forgiva_integrator.sh)

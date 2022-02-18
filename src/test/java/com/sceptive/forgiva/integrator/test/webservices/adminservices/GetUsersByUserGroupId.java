@@ -28,12 +28,12 @@ public void launch(final IFTests _parent) {
                                         PostAdminUserByusergroupResponse.class,
                                         200,
                                         (resp) -> {
+
                                             Assert.assertNotNull(resp.getUsers());
                                             Assert.assertEquals(resp.getUsers()
                                                                     .size(),
                                                                 expected_amount);
 
-                                            Info.get_instance().print("Response", resp);
 
                                         });
         }

@@ -220,8 +220,8 @@ public static Response login(PostLoginRequest _postLoginRequest) throws NotFound
     // If we have a valid session and not authenticated
     if (sp.session != null) {
         // If session is already authenticated
-        if (sp.session.authenticated != null && sp.session.authenticated.booleanValue()) {
-            sp.response = Response.status(Response.Status.FOUND)
+        if (sp.session.authenticated != null && sp.session.authenticated) {
+            sp.response = Response.status(Response.Status.OK)
                                   .build();
         } else {
             // Authenticate
@@ -231,7 +231,7 @@ public static Response login(PostLoginRequest _postLoginRequest) throws NotFound
                                                                                          .isAdmin(false)))
                                   .build();
             // Check if data seems valid
-            if (_postLoginRequest != null && _postLoginRequest.getUsername() != null &&
+            if (_postLoginRequest.getUsername() != null &&
                 _postLoginRequest.getPassword() != null &&
                 Common.check_if_hex(_postLoginRequest.getUsername()) &&
                 Common.check_if_hex(_postLoginRequest.getPassword())) {
@@ -316,6 +316,7 @@ public static Response login(PostLoginRequest _postLoginRequest) throws NotFound
                     } else {
                         // FHash value ran with chosen SECURITY_PW_HASHING_MODEL combining
                         // SECURITY_PW_HASHING_SALT value
+                        assert Configuration.runtime != null;
                         String password =
                                 Common.encodeHex(FHashGenerator.hash_for_model(Configuration.runtime.security_pw_hashing_model,
                                                                                decrypted_password_hash,

@@ -25,7 +25,7 @@ public void launch(final IFTests _parent) throws Exception {
         String last_email = null;
         String last_password = null;
         for (String group_id : parent.added_groups.keySet()) {
-            int amount = Common.random_next_int(parent.test_iterations);
+            int amount = Common.random_next_int(parent.test_iterations)+1;
             for (int i = 0; i < amount; i++) {
                 PostAdminUserAddRequest req = new PostAdminUserAddRequest();
                 req.setHeader(parent.adminDefHeader);

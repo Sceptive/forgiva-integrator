@@ -3,6 +3,7 @@ package com.sceptive.forgiva.integrator.test.webservices;
 import com.sceptive.forgiva.integrator.core.Configuration;
 import com.sceptive.forgiva.integrator.core.crypto.AsymmetricKeyPair;
 import com.sceptive.forgiva.integrator.core.crypto.Common;
+import com.sceptive.forgiva.integrator.logging.Debug;
 import com.sceptive.forgiva.integrator.logging.Info;
 import com.sceptive.forgiva.integrator.services.gen.model.Header;
 import com.sceptive.forgiva.integrator.services.gen.model.PostNewSessionRequest;
@@ -37,6 +38,8 @@ public class NewSessionTests extends IFTests {
             Info.get_instance().print("Checking if web service providing right values");
             String response = HttpsClient.post_api("/new_session",
                                                    General.omapper.writeValueAsString(pns_r)).getBody();
+
+            Info.get_instance().print(response);
 
             Assert.assertNotNull(response);
 

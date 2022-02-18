@@ -1,0 +1,273 @@
+import org.gradle.internal.os.OperatingSystem;
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'application'
+    id "org.openapi.generator" version "4.3.1"
+    id "com.adarshr.test-logger" version "2.1.1"
+}
+
+
+/********************************   FUNCTIONS   *******************************/
+def getVersionNumber = { ->
+    def hashStdOut = new ByteArrayOutputStream()
+    exec {
+        commandLine "git", "log", "--oneline"
+        standardOutput = hashStdOut
+    }
+
+    return hashStdOut.toString().split("\r?\n").length
+}
+
+def getVersionTag = { ->
+    def hashStdOut = new ByteArrayOutputStream()
+    exec {
+        commandLine "git", "describe", "--tags","--long"
+        standardOutput = hashStdOut
+    }
+
+
+    def ret = hashStdOut.toString()
+
+    /* Splittion first describer of the tag e.x r1-0-dede > r1 */
+    return (ret == null || ret.isEmpty()) ? "main" : (ret.split("\n")[0]).split("-")[0]
+}
+/*
+    Returns compatible version tag with bash commands below
+
+    TAGV=`git describe --tags --long || echo -n 'main'`
+    REV=`(git log --oneline | wc -l | tr -d ' ') || echo -n '0'`
+ */
+def getVersion = { ->
+
+    return getVersionTag()+"-"+getVersionNumber()
+}
+
+
+if (OperatingSystem.current().isWindows()) {
+    throw new GradleException("Build script is not Windows compatible.");
+}
+
+/*******************************   PARAMETERS   ******************************/
+
+group = 'com.sceptive.forgiva.integrator'
+version = getVersion()
+sourceCompatibility = '1.8'
+mainClassName = 'com.sceptive.forgiva.integrator.Main'
+
+distZip.enabled = false
+distTar.enabled = false
+
+final def deployPath = "$rootDir/build/deploy/$version"
+final def testPath   = "$rootDir/test/"
+final def packages = [
+
+        "org.eclipse.jetty:jetty-servlet":                      "9.4.15.v20190215",
+        "org.eclipse.persistence:org.eclipse.persistence.jpa":  "2.7.4",
+        "com.h2database:h2":                                    "1.4.197",
+        "org.fusesource.jansi:jansi":                           "1.17.1",
+        "org.apache.logging.log4j:log4j-api":                   "2.11.2",
+        "org.apache.logging.log4j:log4j-core":                  "2.11.2",
+        "org.bouncycastle:bcprov-jdk15on":                      "1.64",
+        "org.bouncycastle:bcprov-ext-jdk15on":                  "1.64",
+        "org.openapitools:openapi-generator-maven-plugin":      "4.2.3",
+        "org.postgresql:postgresql":                            "42.2.12",
+        "org.apache.directory.api:api-all":                     "2.0.1",
+        "com.github.oshi:oshi-core":                            "4.6.1",
+        "org.simplejavamail:simple-java-mail":                  "6.0.4",
+        "org.apache.commons:commons-compress":                  "1.20",
+        "org.tukaani:xz":                                       "1.8",
+        "org.wso2.msf4j:msf4j-core":                            "2.8.1",
+        "com.squareup.okhttp3:okhttp":                          "4.4.0",
+        "org.testng:testng":                                    "6.9.8"
+
+]
+
+repositories {
+
+    def addMaven = { mvnurl ->
+        maven {
+            url mvnurl
+        }
+    }
+    mavenLocal()
+    addMaven("https://maven.wso2.org/nexus/content/repositories/public/")
+    addMaven("http://maven.wso2.org/nexus/content/repositories/releases/")
+    addMaven("http://maven.wso2.org/nexus/content/repositories/snapshots/")
+    addMaven("http://maven.wso2.org/nexus/content/groups/wso2-public/")
+    addMaven("http://repo.maven.apache.org/maven2")
+
+}
+
+/******************************** DEPENDENCIES ********************************/
+dependencies {
+
+    compileOnly('io.swagger:swagger-jaxrs:1.6.0')
+
+    packages.each {pckg ->
+        compile "${pckg.key}:${pckg.value}"
+    }
+
+
+    testCompile 'org.testng:testng:6.9.8'
+}
+
+
+
+/******************************* TASKS ********************************/
+
+
+task generateJSApi(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+    generatorName  = "javascript"
+    inputSpec      = "$rootDir/etc/api/reference/integratorapi.v1.yaml".toString()
+    outputDir      = "$rootDir/generated/js/api/".toString()
+    skipOverwrite  = true
+
+}
+
+task generateApi(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+    generatorName  = "java-msf4j"
+    inputSpec      = "$rootDir/etc/api/reference/integratorapi.v1.yaml".toString()
+    outputDir      = "$rootDir/generated/api/".toString()
+    apiPackage     = "com.sceptive.forgiva.integrator.services.gen.api"
+    invokerPackage = "com.sceptive.forgiva.integrator.services.gen.invoker"
+    modelPackage   = "com.sceptive.forgiva.integrator.services.gen.model"
+    skipOverwrite  = true
+
+    configOptions = [
+            dateLibrary: "java8",
+            implFolder:  "../../src/main/java"
+    ]
+}
+
+
+task testDeploy {
+
+
+
+    copy {
+        from("$rootDir/etc/conf/")
+        into("${testPath}/conf/")
+    }
+
+
+}
+
+task buildDeploy {
+
+    mkdir("${deployPath}")
+
+
+    doLast {
+        mkdir("${deployPath}/bin")
+        mkdir("${deployPath}/conf/")
+
+
+        copy {
+            from("$rootDir/src/bin/")
+            into("${deployPath}/bin/")
+        }
+
+        copy {
+            from("$rootDir/etc/conf/")
+            into("${deployPath}/conf/")
+        }
+
+        copy {
+
+            from("${jar.archiveFile.get().asFile}")
+            into("${deployPath}/bin/")
+            rename {"forgiva.integrator.jar"}
+        }
+
+        exec {
+            commandLine = "chmod +x ${deployPath}/bin/forgiva_integrator.sh".tokenize()
+        }
+
+    }
+}
+
+
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+
+/******************************* BUILD SETTINGS ********************************/
+
+configurations.all {
+    exclude group:"org.slf4j", module: "slf4j-log4j12"
+    exclude group:"org.slf4j", module: "slf4j-simple"
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+            exclude '**/gen/api/Application.java'
+            exclude '**/gen/api/OffsetDateTimeProvider.java'
+            exclude '**/gen/api/LocalDateProvider.java'
+            exclude '**/gen/api/JacksonJsonProvider.java'
+            exclude '**/gen/api/RFC3339DateFormat.java'
+        }
+    }
+}
+
+
+
+
+compileJava {
+    dependsOn(generateApi)
+    dependsOn(generateJSApi)
+
+}
+
+openApiValidate {
+    inputSpec = "$rootDir/etc/api/reference/integratorapi.v1.yaml".toString()
+    recommend = true
+}
+
+jar {
+    zip64=true
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+
+test {
+
+    filter {
+        //all classes in package, recursively
+        includeTestsMatching "com.sceptive.forgiva.integrator.test.*"
+    }
+
+
+    maxHeapSize = "4g"
+    jvmArgs "-XX:MaxPermSize=1g"
+
+    failFast = true
+
+    environment "FORGIVA_INTEGRATOR_HOME", "${testPath}"
+
+    useTestNG()
+}
+
+test.dependsOn(testDeploy)
+buildDeploy.dependsOn(test)
+
+
+jar.finalizedBy(buildDeploy)
+
+
+

@@ -22,7 +22,7 @@ public void launch(final IFTests _parent) {
 
 
         for (String host_id : parent.added_hosts.keySet()) {
-            int amount = Common.random_next_int(parent.test_iterations);
+            int amount = Common.random_next_int(parent.test_iterations)+1;
 
             for (int i = 0; i < amount; i++) {
                 PostAdminApplicationAddRequest request = new PostAdminApplicationAddRequest();

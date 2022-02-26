@@ -1,26 +1,35 @@
 package com.sceptive.forgiva.integrator.core;
 
+import com.sceptive.forgiva.integrator.logging.Info;
 import org.bouncycastle.crypto.digests.SM3Digest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Vector;
 
 public class Constants {
 
-    public final static String       FORGIVA_VERSION               = "0.0.1";
-    public final static String       FORGIVA_INTEGRATOR_HOME_LABEL = "FORGIVA_INTEGRATOR_HOME";
-    public final static String LOG_DIRECTORY  = "log";
-    public final static String CNF_DIRECTORY = "conf";
-    public final static String DTA_DIRECTORY = "data";
-    public final static String BIN_DIRECTORY = "bin";
-    public final static String       FORGIVA_SERVER_FILENAME       = "forgiva_server";
-    public final static String       INTEGRATOR_CONFIG_FILENAME    = "integrator.conf";
-    public final static String DEBUG_LOG_FILENAME              = "debug.log";
-    public final static String DEBUG_ROLLING_LOG_FILENAME      = "debug-%d{yyyy-MM-dd}.log.gz";
-    public final static String CONSOLE_LOG_FILENAME            = "console.log";
-    public final static String CONSOLE_ROLLING_LOG_FILENAME    = "console-%d{yyyy-MM-dd}.log.gz";
+    public final static String FORGIVA_VERSION                  = "0.0.1";
+    public final static String LOG_DIRECTORY                    = "log";
+    public final static String CNF_DIRECTORY                    = "conf";
+    public final static String DTA_DIRECTORY                    = "data";
+    public final static String BIN_DIRECTORY                    = "bin";
+    public final static String INTEGRATOR_CONFIG_FILENAME       = "integrator.conf";
+    public final static String DEBUG_LOG_FILENAME               = "debug.log";
+    public final static String DEBUG_ROLLING_LOG_FILENAME       = "debug-%d{yyyy-MM-dd}.log.gz";
+    public final static String CONSOLE_LOG_FILENAME             = "console.log";
+    public final static String CONSOLE_ROLLING_LOG_FILENAME     = "console-%d{yyyy-MM-dd}.log.gz";
 
     public final static String WEB_API_BASEPATH                = "/api";
+
+    // Environment Variables
+
+    public final static String FORGIVA_INTEGRATOR_CONF_LOCATION = "FORGIVA_INTEGRATOR_CONF_LOCATION";
+    public final static String FORGIVA_INTEGRATOR_LOGS_LOCATION = "FORGIVA_INTEGRATOR_LOGS_LOCATION";
+    public final static String FORGIVA_INTEGRATOR_DATA_LOCATION = "FORGIVA_INTEGRATOR_DATA_LOCATION";
+    public final static String FORGIVA_INTEGRATOR_HOME_LABEL    = "FORGIVA_INTEGRATOR_HOME";
+
 
     // Configuration File Properties
     public final static String CFG_PRODUCTION_ENVIRONMENT      = "PRODUCTION_ENVIRONMENT";
@@ -91,7 +100,7 @@ public class Constants {
     public final static String CFG_SECURITY_PW_MIN_ENTROPY         = "SECURITY_PW_MIN_ENTROPY";
     public final static String CFG_SECURITY_PW_PROHIBITED_WORDLIST = "SECURITY_PW_PROHIBITED_WORDLIST";
 
-    public final static String CFG_SECURITY_SSL_TRUSTSTORE = "SECURITY_SSL_TRUSTSTORE";
+    public final static String CFG_SECURITY_SSL_TRUSTSTORE          = "SECURITY_SSL_TRUSTSTORE";
     public final static String CFG_SECURITY_SSL_TRUSTSTORE_PASSWORD = "SECURITY_SSL_TRUSTSTORE_PASSWORD";
 
 
@@ -108,30 +117,41 @@ public class Constants {
     public final static String SMTP_SERVER_TYPE_SECURE          = "SMTPS";
     public final static String SMTP_SERVER_TYPE_SECURE_TLS      = "SMTPS_TLS";
 
-    public final static List<String> USER_SETTINGS_KEYS = Arrays.asList(
-            "animals_do_not_scramble", // Do not scramble animal positions randomly (Less secure)
-            "masterkey_use_password",  // Use my login password as master key (Less secure)
-            "masterkey_ask_once",       // Ask master key once when regenerating password
-            "password_always_show_not_copy", // Always show passwords rather than copying to clipboard
-            "password_default_length",  // Default password length
-            "password_default_complexity" ); // Default password complexity
+    public static class user_setting {
+        public String key;
+        public String default_value;
+        public Class  type;
 
-    public final static List<String> USER_SETTINGS_DEFAULT_VALUES = Arrays.asList(
-            "false",
-            "false",
-            "false",
-            "false",
-            "16",
-            "1"
-    );
+        public user_setting(String key, String default_value, Class type) {
+            this.key = key;
+            this.default_value = default_value;
+            this.type = type;
+        }
+    }
 
-    public final static List<Class> USER_SETTINGS_TYPES = Arrays.asList(
-        Boolean.class,
-        Boolean.class,
-        Boolean.class,
-        Boolean.class,
-        Integer.class,
-        Integer.class);
+    public final static String CONST_US_KEY_MUI = "masterkey_use_ignored";
+
+    public final static user_setting USER_SETTINGS[] = new user_setting[]{
+            // Do not scramble animal positions randomly (Less secure)
+            new user_setting("animals_do_not_scramble", "false", Boolean.class),
+            // Use my login password as master key (Less secure)
+            new user_setting(CONST_US_KEY_MUI,  "false", Boolean.class),
+            // Ask master key once when regenerating password
+            new user_setting("masterkey_ask_once", "false", Boolean.class),
+            // Always show passwords rather than copying to clipboard
+            new user_setting("password_always_show_not_copy", "true", Boolean.class),
+            new user_setting("password_default_length", "16", Integer.class),  // Default password length
+            new user_setting("password_default_complexity", "1", Integer.class) };
+
+    public static user_setting setting_by_name(String _name) {
+
+        for (user_setting setting : USER_SETTINGS) {
+            if (setting.key.contentEquals(_name))
+                return setting;
+        }
+
+        return null;
+    }
 
     public final static String SECURITY_ALG_LBL_ARGON2        = "ARGON2";
     public final static String SECURITY_ALG_LBL_SCRYPT        = "SCRYPT";
@@ -139,13 +159,13 @@ public class Constants {
     public final static String SECURITY_ALG_LBL_SHA512        = "SHA512";
     public final static String SECURITY_ALG_LBL_SHA384        = "SHA384";
     public final static String SECURITY_ALG_LBL_SHA256        = "SHA256";
-    public final static String SECURITY_ALG_LBL_SHA3_512        = "SHA3-512";
-    public final static String SECURITY_ALG_LBL_SHA3_384        = "SHA3-384";
-    public final static String SECURITY_ALG_LBL_SHA3_256        = "SHA3-256";
-    public final static String SECURITY_ALG_LBL_BLAKE2B_512         = "BLAKE2B-512";
-    public final static String SECURITY_ALG_LBL_BLAKE2B_384         = "BLAKE2B-384";
-    public final static String SECURITY_ALG_LBL_BLAKE2B_256         = "BLAKE2B-256";
-    public final static String SECURITY_ALG_LBL_SM3                 = "SM3";
+    public final static String SECURITY_ALG_LBL_SHA3_512      = "SHA3-512";
+    public final static String SECURITY_ALG_LBL_SHA3_384      = "SHA3-384";
+    public final static String SECURITY_ALG_LBL_SHA3_256      = "SHA3-256";
+    public final static String SECURITY_ALG_LBL_BLAKE2B_512   = "BLAKE2B-512";
+    public final static String SECURITY_ALG_LBL_BLAKE2B_384   = "BLAKE2B-384";
+    public final static String SECURITY_ALG_LBL_BLAKE2B_256   = "BLAKE2B-256";
+    public final static String SECURITY_ALG_LBL_SM3           = "SM3";
 
 
     public final static String[] SECURITY_DEFAULT_HASHING_MODEL_PARAMS = {
@@ -191,8 +211,9 @@ public class Constants {
 
 
     public final static int    MIN_ENTROPY_FOR_PW                   = 40;
-    public final static String DEFAULT_SALT                         = "464f52474956415f494e5445475241544f525f4445464155" +
-            "4c545f4845585f56414c55455f464f525f53414c545f504c454153455f4348414e47455f54484953";
+    public final static String DEFAULT_SALT                         =
+            "464f52474956415f494e5445475241544f525f44454641554c545f4845585f56414c55455f464f525f53414c545f504c45" +
+                    "4153455f4348414e47455f54484953";
 
     // Application Constants
     public final static String HEADER_AUTHORIZATION             = "Authorization";

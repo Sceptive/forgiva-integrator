@@ -81,7 +81,6 @@ final def packages = [
         "org.wso2.msf4j:msf4j-core":                            "2.8.1",
         "com.squareup.okhttp3:okhttp":                          "4.4.0",
         "org.testng:testng":                                    "6.9.8"
-
 ]
 
 repositories {
@@ -122,7 +121,7 @@ task generateJSApi(type: org.openapitools.generator.gradle.plugin.tasks.Generate
     generatorName  = "javascript"
     inputSpec      = "$rootDir/etc/api/reference/integratorapi.v1.yaml".toString()
     outputDir      = "$rootDir/generated/js/api/".toString()
-    skipOverwrite  = true
+    skipOverwrite  = false
 
 }
 
@@ -207,6 +206,7 @@ sourceSets {
     main {
         java {
             srcDir 'src'
+            srcDir "$rootDir/generated/api/src/gen/java/"
             exclude '**/gen/api/Application.java'
             exclude '**/gen/api/OffsetDateTimeProvider.java'
             exclude '**/gen/api/LocalDateProvider.java'

@@ -5,8 +5,10 @@ import com.sceptive.forgiva.integrator.core.db.objects.EMetadata;
 import com.sceptive.forgiva.integrator.exceptions.InvalidValueException;
 import com.sceptive.forgiva.integrator.logging.Warning;
 
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -14,7 +16,6 @@ public class Common {
 
     private static final int max_safe_compare_iteration = 1000;
     private static final char[] DIGITS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
-
 
     public static int random_next_int(int _max) {
         return ThreadLocalRandom.current().nextInt(0, _max);
@@ -24,6 +25,16 @@ public class Common {
         return random_next_int(2) == 0;
     }
 
+
+    public static String random_letters(int length) {
+
+        StringBuilder ret = new StringBuilder();
+        for (int i=0;i<length;i++) {
+            ret.append((char) (97 + random_next_int(25)));
+        }
+
+        return ret.toString();
+    }
 
     public static boolean safe_compare(String a, String b) {
 

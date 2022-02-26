@@ -2,6 +2,7 @@ package com.sceptive.forgiva.integrator.core;
 
 
 import com.sceptive.forgiva.integrator.core.bootstrap.BSRuntime;
+import com.sceptive.forgiva.integrator.core.util.Common;
 import com.sceptive.forgiva.integrator.exceptions.PropertyNotFoundException;
 import com.sceptive.forgiva.integrator.logging.Warning;
 
@@ -17,29 +18,39 @@ import java.util.Properties;
  */
 public class Configuration {
 
+
     /* Environment value for Integrator home path */
-    private static String home_env_value = System.getenv(Constants.FORGIVA_INTEGRATOR_HOME_LABEL);
+    private static final String home_env_value      = System.getenv(Constants.FORGIVA_INTEGRATOR_HOME_LABEL);
 
     /* Integrator home path */
-    public static String home_path
-            = home_env_value == null ? new File("").getAbsoluteFile().getAbsolutePath() :
-            home_env_value;
+    public static String home_path      = Common.get_non_null(home_env_value,
+            new File("").getAbsoluteFile().getAbsolutePath());
+    /*  Configuration directory defined in environment variable */
+    private final static String conf_path_env_value = System.getenv(Constants.FORGIVA_INTEGRATOR_CONF_LOCATION);
+    /*  Logging directory defined in environment variable */
+    private final static String logs_path_env_value = System.getenv(Constants.FORGIVA_INTEGRATOR_LOGS_LOCATION);
+    /*  Data directory defined in environment variable */
+    private final static String data_path_env_value = System.getenv(Constants.FORGIVA_INTEGRATOR_DATA_LOCATION);
 
-    public static String logging_path   = home_path + File.separator + Constants.LOG_DIRECTORY;
-    public static String data_path      = home_path + File.separator + Constants.DTA_DIRECTORY;
-    public static String conf_path      = home_path + File.separator + Constants.CNF_DIRECTORY;
+    public static String logging_path   = Common.get_non_null(logs_path_env_value,
+            home_path + File.separator + Constants.LOG_DIRECTORY);
+    public static String data_path      = Common.get_non_null(data_path_env_value,
+            home_path + File.separator + Constants.DTA_DIRECTORY);
+    public static String conf_path      = Common.get_non_null(conf_path_env_value,
+            home_path + File.separator + Constants.CNF_DIRECTORY);
     public static String bin_path       = home_path + File.separator + Constants.BIN_DIRECTORY;
 
+    public static String upwd_path      = data_path + File.separator + "upwd.txt";
+    public static String apwd_path      = data_path + File.separator + "apwd.txt";
+
     // File full paths
-    public static String forgiva_server_path
-            = bin_path + File.separator + Constants.FORGIVA_SERVER_FILENAME;
     public static String integrator_config_file_path
             = conf_path + File.separator + Constants.INTEGRATOR_CONFIG_FILENAME;
+
     public static String debug_logging_file_path
             = logging_path + File.separator + Constants.DEBUG_LOG_FILENAME;
     public static String debug_logging_rolling_file_path
             = logging_path + File.separator + Constants.DEBUG_ROLLING_LOG_FILENAME;
-
     public static String console_logging_file_path
             = logging_path + File.separator + Constants.CONSOLE_LOG_FILENAME;
     public static String console_logging_rolling_file_path
@@ -56,7 +67,7 @@ public class Configuration {
         }
 
         loaded_properties = new Properties();
-        loaded_properties.load(new FileInputStream(new File(integrator_config_file_path)));
+        loaded_properties.load(new FileInputStream(integrator_config_file_path));
 
 
         // Trimming values

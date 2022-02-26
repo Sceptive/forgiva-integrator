@@ -601,6 +601,67 @@ paths:
                   $ref: '#/components/schemas/header'
         description: Specifies group data to get added. groupId should be null.
     parameters: []
+  /user/backup/export:
+    post:
+      summary: Exports metadatas as backup file
+      tags:
+        - User Operations
+      operationId: post-user-backup-export
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+      description: |
+        This service exports metadatas both as group and whole. If succeeds returns base64 encoded string of JSON data
+        in resultData field in operationResult object. If no metadata group ID is specified then returns all of
+        user's metadatas.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-backup-export-request
+              properties:
+                metadataGroupId:
+                  type: string
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies group id to get exported
+    parameters: []
+  /user/backup/import:
+    post:
+      summary: Imports metadatas from backup file
+      tags:
+        - User Operations
+      operationId: post-user-backup-import
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/operationResult'
+      description: |
+        This service imports metadatas exported from /user/backup/export service.
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              title: post-user-backup-import-request
+              properties:
+                data:
+                  type: string
+                  description: Exported data from /user/backup/export service
+                header:
+                  $ref: '#/components/schemas/header'
+        description: Specifies data to get imported
+    parameters: []
   /admin/system_information:
     post:
       summary: Getting server system information
@@ -1389,6 +1450,9 @@ components:
         info:
           type: string
           description: For any additional info message may need to get shown to the user
+        resultData:
+          type: string
+          description: Any data related with operation result if available
         affectedRecords:
           type: array
           items:

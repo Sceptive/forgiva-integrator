@@ -184,4 +184,17 @@ public void test_change_password() {
 
     new ChangePassword().launch(this);
 }
+
+  @Test(
+          groups = {"user-services-tests", "web-services-tests"},
+          testName = "backups",
+          description = "Testing backing-up mechanisms",
+          priority = 1,
+          dependsOnMethods = {
+                  "test_remove_metadata"
+          })
+  public void test_backups() {
+
+    new Backup().launch(this);
+  }
 }

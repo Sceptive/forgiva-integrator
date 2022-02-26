@@ -20,6 +20,7 @@ public class BootStrapper {
     private static BSDatabase               bs_database;
     private static BSStatCollector          bs_statcollector;
     private static BSForgivaServerInvoker   bs_forgivainvoker;
+    private static BSFinal                  bs_final;
 
 
     private static void   check_for_necessary_directories() {
@@ -185,6 +186,11 @@ public class BootStrapper {
         bs_forgivainvoker = new BSForgivaServerInvoker();
         bs_forgivainvoker.bootstrap(null);
 
+
+        Info.get_instance().print("Running final checks");
+
+        bs_final          = new BSFinal();
+        bs_final.bootstrap(null);
 
         Info.get_instance().print("Bootstrapping completed successfully");
 

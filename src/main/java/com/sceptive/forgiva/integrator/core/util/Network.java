@@ -10,7 +10,7 @@ public class Network {
 
         for (String header : IP_HEADERS) {
             String ret = request.getHeader(header);
-            if (ret != null && ret.length() > 0 && !ret.equalsIgnoreCase("unknown")
+            if (ret != null && !ret.equalsIgnoreCase("unknown")
                     && ret.contains(".")) {
                 return ret;
             }

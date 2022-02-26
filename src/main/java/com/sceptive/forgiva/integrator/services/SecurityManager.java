@@ -134,12 +134,12 @@ public static Response secure_invoke(Header header, boolean _requires_admin_righ
          */
     if (permission.session != null
         // If user is authenticated
-        && permission.session.authenticated.booleanValue()
+        && permission.session.authenticated
         // If service does not requires admin rights and user is not admin
-        && ((!_requires_admin_rights && !permission.session.administrator_session.booleanValue())
+        && ((!_requires_admin_rights && !permission.session.administrator_session)
             // or service requires admin rights and user is admin
             ||
-            (_requires_admin_rights && permission.session.administrator_session.booleanValue()))) {
+            (_requires_admin_rights && permission.session.administrator_session))) {
         return valid.apply(permission.session);
     } else {
         return Response.status(401)

@@ -15,7 +15,7 @@ USER fuser
 RUN mkdir -p ${WD}/bin
 
 COPY \
-    target/deploy/${VER} \
+    build/deploy/${VER} \
     ${WD}
 
 EXPOSE 8443

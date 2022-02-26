@@ -12,6 +12,8 @@ import com.sceptive.forgiva.integrator.core.db.objects.ESession;
 import com.sceptive.forgiva.integrator.core.db.objects.EUser;
 import com.sceptive.forgiva.integrator.core.db.objects.EUserGroup;
 import com.sceptive.forgiva.integrator.core.ldap.LdapConnection;
+import com.sceptive.forgiva.integrator.exceptions.InvalidValueException;
+import com.sceptive.forgiva.integrator.exceptions.NotInitializedException;
 import com.sceptive.forgiva.integrator.logging.Info;
 import com.sceptive.forgiva.integrator.logging.Warning;
 import com.sceptive.forgiva.integrator.services.SecurityManager;
@@ -69,13 +71,9 @@ public static Response newsession(PostNewSessionRequest _postNewSessionRequest)
     pns_response.setHshSalt(Configuration.runtime.security_default_hashing_salt);
     pns_response.setHshAlg(Configuration.runtime.security_default_hashing);
     pns_response.setSessionPk(permission.session.public_key);
-    if (Configuration.runtime.ldap_server != null && Configuration.runtime.ldap_server.trim()
-                                                                                      .length() >
-                                                     1) {
-        pns_response.setLdapEnabled(true);
-    } else {
-        pns_response.setLdapEnabled(false);
-    }
+    pns_response.setLdapEnabled(Configuration.runtime.ldap_server != null && Configuration.runtime.ldap_server.trim()
+            .length() >
+            1);
     return Response.ok()
                    .entity(pns_response)
                    .build();
@@ -97,7 +95,8 @@ public static LdapConnection login_for_ldap_user(String _userName, String _passw
     return null;
 }
 
-private static boolean invoke_ldap_login(String _userName, String _password, ESession _session) {
+private static boolean invoke_ldap_login(String _userName, String _password, ESession _session)
+        throws InvalidValueException, NotInitializedException {
     LdapConnection connection = login_for_ldap_user(_userName,
                                                     _password);
     boolean ok = false;
@@ -140,14 +139,19 @@ private static boolean invoke_ldap_login(String _userName, String _password, ESe
                      .getResultList();
         if (res.size() == 0) {
             EUser new_user = new EUser();
-            new_user.fullname     = connection.getUserInfo().userFullName;
-            new_user.username     = _userName;
-            new_user.email        = connection.getUserInfo().userEmail;
-            new_user.externalUser = true;
-            new_user.password     = null;
+            new_user.fullname       = connection.getUserInfo().userFullName;
+            new_user.username       = _userName;
+            new_user.email          = connection.getUserInfo().userEmail;
+            new_user.externalUser   = true;
+            // In cases of if user does not want to use master key everytime for password generation
+            // it is necessary to use password hash as master key. That's why LDAP password hash is saved.
+            new_user.password       = Common.encodeHex(FHashGenerator.hash_for_model(
+                    Configuration.runtime.security_pw_hashing_model,
+                    _password.getBytes(),
+                    Common.decodeHex(Configuration.runtime.security_pw_hashing_salt)));
 
             // If there is no groupId defined set it as default user group
-            new_user.groupId = ldap_users_group.id;
+            new_user.groupId        = ldap_users_group.id;
             em.getTransaction()
               .begin();
             em.persist(new_user);

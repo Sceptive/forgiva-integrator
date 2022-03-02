@@ -7,6 +7,7 @@ import com.sceptive.forgiva.integrator.exceptions.InvalidValueException;
 import com.sceptive.forgiva.integrator.logging.Fatal;
 import com.sceptive.forgiva.integrator.logging.Info;
 import com.sceptive.forgiva.integrator.logging.Warning;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -61,18 +62,34 @@ public class PasswordGuard {
 
     private void generate_hashset(File _wordlist_file, Connection _connection) throws Exception {
 
-        generating_hashset = true;
+        generating_hashset    = true;
+        // Average size of the expected total size of contents depending on compression algorithm
+        long    expected_size = _wordlist_file.length()*3;
+        // Readed line from decompressed file
+        String line     = null;
+        // Amount of words processed
+        long   amount   = 0;
+        // Amount of words failed to save
+        long   failed   = 0;
+        // Current percentage
+        long   pr_size  = 0;
+        // Last informed percentage
+        long   ls_perc  = 0;
 
         InputStream is = null;
         String wl_lcase = _wordlist_file.getAbsolutePath().toLowerCase();
         if (wl_lcase.endsWith(".7z")) {
             SevenZFile sevenZFile = new SevenZFile(_wordlist_file);
-            is = sevenZFile.getInputStream(sevenZFile.getNextEntry());
+
+            SevenZArchiveEntry en = sevenZFile.getNextEntry();
+            is = sevenZFile.getInputStream(en);
+
         } else {
             InputStream fis = Files.newInputStream(Paths.get(_wordlist_file.getAbsolutePath()));
             if (wl_lcase.endsWith(".gz")) {
                 is =
                     new GzipCompressorInputStream(fis);
+
             } else if (wl_lcase.endsWith(".bz2")) {
                 is = new BZip2CompressorInputStream(fis);
             } else if (wl_lcase.endsWith(".xz")) {
@@ -86,29 +103,49 @@ public class PasswordGuard {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
+
+
         try (Statement _st = _connection.createStatement()) {
             _st.execute("CREATE TABLE WORDS(WORD VARCHAR);");
             _st.execute("CREATE UNIQUE INDEX IDX_U_NAME ON WORDS(WORD);");
         }
 
 
-        int    expected = (int)(_wordlist_file.length()/8);
-        Info.get_instance().print("Generating wordlist for %s",
-                                  _wordlist_file.getAbsolutePath());
-        String line     = null;
-        long   amount   = 0;
+        Info.get_instance().print("Generating wordlist for %s : %d bytes",
+                                  _wordlist_file.getAbsolutePath(),_wordlist_file.length());
+
         PreparedStatement ps =  _connection.prepareStatement("INSERT INTO WORDS VALUES (?)");
         while ((line = br.readLine()) != null) {
-            ps.setString(1,line);
+
+            ps.setString(1, line);
             try {
                 ps.execute();
-            } catch (JdbcSQLException _ex ) {
-                Warning.get_instance().print("Exception on creating wordlist: %s",_ex.getMessage());
+
+                amount++;
+
+            } catch (JdbcSQLException _ex) {
+                failed++;
             }
-            amount++;
+
+
+
+            pr_size += line.length();
+
+            for (long percentage = (pr_size* 100)/expected_size;
+                        percentage % 10 == 0
+                                && ls_perc != percentage
+                                && percentage < 100;) {
+                Info.get_instance().print("PasswordGuard processed %d bytes ~ %%%d of %s.",
+                        pr_size,
+                        percentage,_wordlist_file.getAbsolutePath());
+                ls_perc = percentage;
+                break;
+            }
+
         }
 
-        Info.get_instance().print("PasswordGuard reached total of %d words and finished initialization. ", amount);
+        Info.get_instance().print("PasswordGuard reached total of %d words (failed %d) " +
+                "and finished initialization. ", amount, failed);
 
 
         generating_hashset = false;

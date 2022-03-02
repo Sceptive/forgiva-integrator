@@ -3,6 +3,7 @@ package com.sceptive.forgiva.integrator.core;
 import com.sceptive.forgiva.integrator.core.db.objects.EStatistics;
 import com.sceptive.forgiva.integrator.exceptions.NotInitializedException;
 import com.sceptive.forgiva.integrator.logging.Debug;
+import com.sceptive.forgiva.integrator.logging.Trace;
 import com.sceptive.forgiva.integrator.logging.Warning;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -80,8 +81,6 @@ public class StatCollector implements Runnable{
     public void run() {
 
         try {
-            Debug.get_instance()
-                 .print("Running statistics collector");
             double cpu_usage = get_current_cpu_usage_percentage();
             EntityManager em = Database.get_instance()
                                        .getEm();

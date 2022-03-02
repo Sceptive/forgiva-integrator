@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # ---------------------------------------------------------------------------
 # Start Script for the Forgiva Integrator

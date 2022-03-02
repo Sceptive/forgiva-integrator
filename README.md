@@ -1,14 +1,14 @@
 # Forgiva Integrator
 
-<p align="center"><img src="readme.ext/integrator-main.png" alt="Forgiva Integrator" width="1000px" /></p>
+<p align="center"><img src="readme.ext/integrator-main.svg" alt="Forgiva Integrator" width="1000px" /></p>
 
 ## INTRODUCTION
 
-Forgiva Enterprise offers a set of components for a secure and efficient method of 
+Forgiva Enterprise is a set of components for a secure and efficient method of 
 re-generation of passwords each time through the cryptographic hash and encryption algorithm(s) 
 of the relevant metadata on the assumption that as long as fixed metadatas with fixed algorithms
 can generate same passwords so that storing any password becomes unnecessary. This method is 
-called as **stateless** or **deterministic** password management.
+classified as **stateless** or **deterministic** password management.
 
 Thus; 
 
@@ -16,16 +16,17 @@ Thus;
  * a certain method of resistance emerges for rubber-hose crypto cryptanalysis attacks (torture, coercion etc.) 
 due to any key can generate another password so users can plausibly deny knowing master-key
  * enterprise configurations of the passwords generates corporate specific keyspace to create a black-box against the attackers
- * visual metadata system protects itself from malwares and keyloggers.
+ * visual metadata system adds protection to itself for malwares and keyloggers.
 
-<p align="center"><img src="readme.ext/integrator-vc.png" alt="Forgiva Integrator" width="500px" /></p>
+<p align="center"><img src="readme.ext/integrator-vc.svg" alt="Forgiva Integrator" width="700px" /></p>
 
 
 Also depending on the corporate password policies, Forgiva Enterprise guarantees that passwords 
 are generated without any need for inspection and in line with the conditions defined by the central 
 decision-making points.
 
-Forgiva Enterprise fixes most of the arguments against stateteless/deterministic password managers. Please refer to the FAQ section for more questions. 
+Forgiva Enterprise fixes most of the arguments against stateteless/deterministic password managers. Please refer 
+to the FAQ section for more questions. 
 
 Forgiva Integrator is the core module of Forgiva Enterprise. It connects Forgiva Server to Forgiva WebClient on 
 password generation processes and integrates other Forgiva Enterprise features with the network running 
@@ -34,14 +35,15 @@ over such as LDAP, FORHash and  other various integrations.
 
 ## Fast Start
 
-You can launch Forgiva Integrator quickly with it's container image;
+You can launch Forgiva Integrator detached quickly with it's container image;
 
 ```shell
-$ docker run -ti -p 8443:8443 --name forgiva forgiva_integrator:latest 
+$ docker run -ti -d -p 8443:8443 --name forgiva forgiva-integrator:latest 
 ```
 It will be creating random credentials (if defaults is used) for both administrator and user.
 
 ```
+$ docker logs forgiva
 ...
 [INFO] Created default account and save credentials at /opt/forgiva-integrator/data/upwd.txt . Please change after login.
 [INFO] It is detected that default password is set. Admin access credentials are changed and saved to  /opt/forgiva-integrator/data/apwd.txt
@@ -60,57 +62,16 @@ $ docker exec -ti forgiva cat /opt/forgiva-integrator/data/apwd.txt
 
 Then please redirect your browser to https://localhost:8443 to access Forgiva Enterprise Web Client.
 
+<p align="center"><img src="readme.ext/integrator-login.svg" alt="Forgiva Enterprise login" width="700px" /></p>
 
-<p align="center"><img src="readme.ext/integrator-login.png" alt="Forgiva Enterprise login" width="500px" /></p>
+You can log in into same interface with both administrator and user credentials.
 
-
-You can login into same interface with both administrator and user credentials.
-
-## BUILDING
-
-To build a runnable package you will need;
-
- - Unix/Linux environment
- - Maven build automation tool
- - Java 1.8 JDK environment
- - Docker Containerization Toolkit
- 
-installed. 
-                                                                             
-```                                                                             
-$ ./build.sh run
-```
-
-command will be building whole project into the target/deploy/[version]/
-path and synchronizing web client (client/web/dist) and Forgiva Server binary releases 
-into the relative target path. And starts the Forgiva Integrator instance.
-
-You can go to https://localhost:8443 to seek Forgiva Integrator. 
-
-
-### Create Release Package
-
-```
-$ ./build.sh release
-```
-
-Will be creating **forgiva_integrator-$VER-jvm8-release.tar.xz** release file on
-root folder. 
-
-### Create Docker Image
-
-```
-$ ./build.sh image
-```
-
-To run the created forgiva-integrator image
-```
-$ docker run -p 8443:8443 <image-id>
-```
+For more details and customization options please refer to the [docker image usage section](CONFIGURATION.md#docker-image-usage) 
+in [configuration](CONFIGURATION.MD) documentation.
 
 ## FAQ
 
-### What makes Forgiva Enterprise better against other stateless/deterministic password managers?
+### Q: What makes Forgiva Enterprise better against other stateless/deterministic password managers?
 
 For the start Forgiva is not a key-derivation algorithm but a "combination algorithm" which generates way-much 
 stronger keys other than bcrypt, scrypt and argon2.
@@ -121,31 +82,32 @@ a lot of encryption and hashing algorithms depending on the master-key.
 Tying algorithm order with master-key makes it impossible to determine an estimation time (and processor cost) 
 for a brute-force attack session. This puts Forgiva Enterprise one step beyond others. 
   
-Please take a look at iterative-hashing and iterative-encryption methods at ALGORITHM.md .
+Please take a look at iterative-hashing and iterative-encryption methods at [algorithm documentation](ALGORITHM.md) .
 
-### What about common arguments against stateless/deterministic password managers?
+### Q: What about common arguments against stateless/deterministic password managers?
 
-Forgiva Enterprise has been developed by bypassing some arguments related to stateless password managers which
+Forgiva Enterprise has been developed especially for bypassing some arguments related to stateless password managers which
 you can take a look at [here](http://security.stackexchange.com/questions/94106/is-this-idea-for-a-password-manager-secure-if-so-why-doesnt-anybody-use-it)
 and [here](http://security.stackexchange.com/questions/55592/password-managers-encrypted-database-vs-hashing-strategy).
 
-Forgiva surpasses most of the arguments against the idea and presents stateless password managing as a great method to get protected.
+Forgiva surpasses most of the arguments against the idea and presents stateless password managing as a great method to 
+get protected.
 
-#### Q: If master key does gets compromised all your passwords gets compromised. 
+### Q: If master key does gets compromised all your passwords gets compromised. 
 
 This problem is also resides with all encrypted vaults and password managers. And all encrypted vaults prones to the 
 brute-force attacks but Forgiva Enterprise is way-way more strong against brute-force attacks and additionally offers 
 deniable knowledge on rubber-hose cryptoanalysis attacks (like torture, coersion etc.) .
 
-#### Q: Managing sites with restrictive password requirements is very difficult
+### Q: Managing sites with restrictive password requirements is very difficult
 
 This was a problem with initial versions of Forgiva but resolved in Forgiva Enterprise, users can specify password
 policies by themselves, from PIN number to case and symbol group choices.
 
 <p align="center"><img src="readme.ext/integrator-custom.png" alt="Forgiva Enterprise Custom" width="500px" /></p>
 
-#### Q: Changing site-specific passwords requires remembering additional site-specific information
-#### Q: It's not always obvious what site name to use as the input for the hash function
+### Q: Changing site-specific passwords requires remembering additional site-specific information
+### Q: It's not always obvious what site name to use as the input for the hash function
 
 All metadatas are getting stored within custom configured databases of user's choice and can get backed-up regularly.
 
@@ -157,14 +119,14 @@ all of their metadatas over configured databases periodically.
 
 So no additional remembering is needed other than master-password. 
 
-#### Q: Changing the master password is inconvenient
+### Q: Changing the master password is inconvenient
 
 With renewal mechanism developed in Forgiva Enterprise there is no incovenient way of password renewal.
 
 <p align="center"><img src="readme.ext/integrator-renew.png" alt="Forgiva Enterprise Renew" width="500px" /></p>
 
 
-#### How does it protect me better against malware?
+### How does it protect me better against malware?
 
 Malwares do hijack your interaction with computer and try to fetch all the actions you make to unlock authorizations.
 
@@ -189,13 +151,24 @@ To crack a password with 73 bit entropy it would take ~6 million years to comple
 On **Intermediate complexity** it will take ~24 million years and on **Advanced complexity** it will take ~280 million years to reach all combinations at minimum.
 
 
-### Features to add
+## Features to add
 
 - Forgiva Server Host Mode integration
-- ForHash should get implemented
+- ForHash (black-box hashing API)
 - Biometric fingerprinting 
 - SIEM integrations
 - Mobile interfaces
+- 2FA login
+- Password reset functionality
+
+## Support
+
+For any support and assistance please get in touch with 
+
+harun (dot) esur [at] sceptive (dot) com
+or
+harun (dot) kozmot (dot) com
+
 
 
 

@@ -9,6 +9,8 @@ import com.sceptive.forgiva.integrator.logging.Warning;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 
@@ -23,7 +25,7 @@ public class Configuration {
     private static final String home_env_value      = System.getenv(Constants.FORGIVA_INTEGRATOR_HOME_LABEL);
 
     /* Integrator home path */
-    public static String home_path      = Common.get_non_null(home_env_value,
+    public static String home_path                  = Common.get_non_null(home_env_value,
             new File("").getAbsoluteFile().getAbsolutePath());
     /*  Configuration directory defined in environment variable */
     private final static String conf_path_env_value = System.getenv(Constants.FORGIVA_INTEGRATOR_CONF_LOCATION);
@@ -56,6 +58,19 @@ public class Configuration {
     public static String console_logging_rolling_file_path
             = logging_path + File.separator + Constants.CONSOLE_ROLLING_LOG_FILENAME;
 
+    /**
+     * Dynamic variables which can be used as the subsititor for specific variables.
+     *
+     * Such as db_jdbc_url which like for ex: jdbc:driver:abc:${data_path}/abc.db
+     */
+    public static Map<String, String> dynamic_variables = new HashMap<>();
+
+    static {
+        dynamic_variables.put("home_path"   , home_path);
+        dynamic_variables.put("logging_path", logging_path);
+        dynamic_variables.put("data_path"   , data_path);
+        dynamic_variables.put("conf_path"   , conf_path);
+    }
 
     public static BSRuntime runtime = null;
 

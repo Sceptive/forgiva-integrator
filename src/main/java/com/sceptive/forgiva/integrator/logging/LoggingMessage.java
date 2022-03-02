@@ -6,22 +6,30 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
 import org.fusesource.jansi.Ansi;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public abstract class LoggingMessage {
 
+    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyMMddHHmmss");
 
-
-    private static String Colorize(Ansi.Color _color, String _text) {
+    public static String Colorize(Ansi.Color _color, String _text) {
         return Ansi.ansi().fg(_color).a(_text).reset().toString();
     }
 
-    private static void  pc(Level level,String message) {
+    public static void  pc(Level level,String message) {
 
-        System.out.println(String.format("[%s] %s",
-                Colorize((level.intLevel() == Level.FATAL.intLevel() ? Ansi.Color.RED :
-                        level.intLevel() == Level.ERROR.intLevel() ? Ansi.Color.YELLOW :
-                                level.intLevel() == Level.INFO.intLevel() ? Ansi.Color.BLUE :
-                                        level.intLevel() == Level.WARN.intLevel() ? Ansi.Color.MAGENTA
-                                                : Ansi.Color.WHITE),level.name())
+        Ansi.Color p_color = (level.intLevel() == Level.FATAL.intLevel() ? Ansi.Color.RED :
+                level.intLevel() == Level.ERROR.intLevel() ? Ansi.Color.YELLOW :
+                        level.intLevel() == Level.INFO.intLevel() ? Ansi.Color.BLUE :
+                                level.intLevel() == Level.WARN.intLevel() ? Ansi.Color.MAGENTA :
+                                        level.intLevel() == Level.DEBUG.intLevel() ? Ansi.Color.CYAN :
+                                                level.intLevel() == Level.TRACE.intLevel() ? Ansi.Color.GREEN
+                                                        : Ansi.Color.WHITE);
+
+        System.out.println(String.format("[%s] [%s] %s",
+                Colorize(p_color,level.name()),
+                Colorize(p_color,formatter.format(LocalDateTime.now()))
                 ,message));
         System.out.flush();
     }
@@ -39,9 +47,7 @@ public abstract class LoggingMessage {
             LogManager.getLogger().log(level, formatted_message);
         }
 
-        if (level.intLevel() <= Level.INFO.intLevel()) {
-            pc(level, formatted_message);
-        }
+        pc(level, formatted_message);
     }
 
     public abstract void print(String format, Object... params);

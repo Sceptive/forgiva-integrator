@@ -4,11 +4,15 @@ package com.sceptive.forgiva.integrator.core;
 import com.sceptive.forgiva.integrator.core.bootstrap.*;
 import com.sceptive.forgiva.integrator.core.crypto.Common;
 import com.sceptive.forgiva.integrator.core.crypto.parameters.Parameters;
-import com.sceptive.forgiva.integrator.logging.Fatal;
-import com.sceptive.forgiva.integrator.logging.Info;
-import com.sceptive.forgiva.integrator.logging.Warning;
+import com.sceptive.forgiva.integrator.logging.*;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.status.StatusData;
+import org.apache.logging.log4j.status.StatusListener;
+import org.apache.logging.log4j.status.StatusLogger;
+import org.fusesource.jansi.Ansi;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
 public class BootStrapper {
@@ -121,9 +125,57 @@ public class BootStrapper {
 
         Info.get_instance().print("Booting up Forgiva Integrator.");
 
+
+        Info.get_instance().print(
+        LoggingMessage.Colorize(Ansi.Color.BLUE,"      .-\" L_  ")+
+            LoggingMessage.Colorize(Ansi.Color.CYAN,"  FORGIVA Integrator "));
+
+        Info.get_instance().print(
+                LoggingMessage.Colorize(Ansi.Color.BLUE,";`, /   ( o \\   The new-age password manager."));
+        Info.get_instance().print(
+                LoggingMessage.Colorize(Ansi.Color.BLUE," \\  ;    `, /  "));
+        Info.get_instance().print(
+                LoggingMessage.Colorize(Ansi.Color.BLUE," ;_/\"`.__.-\" "));
+
+
+        StatusLogger.getLogger().registerListener(new StatusListener() {
+            @Override
+            public void log(StatusData statusData) {
+
+                if (statusData.getLevel().intLevel() ==
+                        Level.INFO.intLevel()) {
+                    LoggingMessage.pc(Level.INFO,statusData.getMessage().getFormattedMessage());
+                } else if (statusData.getLevel().intLevel() == Level.DEBUG.intLevel()) {
+                    LoggingMessage.pc(Level.DEBUG,statusData.getMessage().getFormattedMessage());
+                } else if (statusData.getLevel().intLevel() == Level.WARN.intLevel()) {
+                    LoggingMessage.pc(Level.WARN,statusData.getMessage().getFormattedMessage());
+                } else if (statusData.getLevel().intLevel() == Level.TRACE.intLevel()) {
+                    LoggingMessage.pc(Level.TRACE,statusData.getMessage().getFormattedMessage());
+                } else {
+                    LoggingMessage.pc(Level.INFO,
+                            String.format("[%s] - %s",  statusData.getLevel().name(),
+                            statusData.getMessage().getFormattedMessage()));
+                }
+
+            }
+
+            @Override
+            public Level getStatusLevel() {
+                return Level.ALL;
+            }
+
+            @Override
+            public void close() throws IOException {
+
+            }
+        });
+
+
+
         // Validating HOME path
         if (!(file_home_path.exists() && file_home_path.isDirectory())) {
-            Fatal.get_instance().print("Please set %s environment value to a valid directory. ",Constants.FORGIVA_INTEGRATOR_HOME_LABEL);
+            Fatal.get_instance().print("Please set %s environment value to a valid directory. ",
+                                        Constants.FORGIVA_INTEGRATOR_HOME_LABEL);
         }
 
         // Validating Binaries path
@@ -135,7 +187,8 @@ public class BootStrapper {
         if (!(file_log_path.exists() && file_log_path.isDirectory())) {
 
             if ((!file_log_path.mkdir())) {
-                Fatal.get_instance().print("Logging directory %s does not exists. And could not be created. ", Configuration.logging_path);
+                Fatal.get_instance().print("Logging directory %s does not exists. And could not be created. ",
+                                            Configuration.logging_path);
             }
         }
 

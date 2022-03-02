@@ -26,8 +26,10 @@ LOGGING_OUTPUT_FORMAT       = PLAIN
 #  Database===========================================================================================  #
 #  DB_JDBC_DRIVER:              Standard JPA 2.0 JDBC driver class name for JSE deployments             #
 #  DB_JDBC_URL:                 Standard JPA 2.0 JDBC URL for JSE deployments                           #
-#                               May include #{DB_HOME} variable to indicate absolute db path relative   #
-#                               to Integrator home path for file databases (such as Sqlite, H2 etc.)    #
+#                               May include ${data_path}, ${home_path}, ${logging_path} or ${conf_path} #
+#                               substitutions to indicate absolute db path relative to relevant         #
+#                               Integrator path configurations for file databases (such as Sqlite,      #
+#                               H2 etc.)                                                                #
 #  DB_JDBC_USER:                Database user                                                           #
 #  DB_JDBC_PASSWORD:            Database password                                                       #
 #  ===================================================================================================  #
@@ -45,7 +47,7 @@ LOGGING_OUTPUT_FORMAT       = PLAIN
 #  ==================================================================================================== #
 
 DB_JDBC_DRIVER              = org.h2.Driver
-DB_JDBC_URL                 = jdbc:h2:~/forgiva_integrator.db;AUTO_SERVER=TRUE
+DB_JDBC_URL                 = jdbc:h2:${data_path}/forgiva_integrator.db;AUTO_SERVER=TRUE
 DB_JDBC_USER                = admin
 DB_JDBC_PASSWORD            = admin
 
@@ -163,7 +165,7 @@ BCRYPT_COST                 = 4
 #  HTTPS_HOST:                      Host to bind port to.                                               #
 #  HTTPS_SSL_KEYSTORE_FILE:         .JKS KeyStore file containing SSL Keys Respective to conf directory #
 #  HTTPS_SSL_KEYSTORE_PASS:         .JKS KeyStore file password                                         #
-#  HTTPS_SSL_KEYSTORE_PASS:         Certificate password located in JKS File                            #
+#  HTTPS_SSL_CERT_PASS:             Certificate password located in JKS File                            #
 #                                                                                                       #
 # ===================================================================================================== #
 

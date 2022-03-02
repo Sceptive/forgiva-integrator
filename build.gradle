@@ -77,6 +77,7 @@ final def packages = [
         "com.github.oshi:oshi-core":                            "4.6.1",
         "org.simplejavamail:simple-java-mail":                  "6.0.4",
         "org.apache.commons:commons-compress":                  "1.20",
+        "org.apache.commons:commons-text":                      "1.9",
         "org.tukaani:xz":                                       "1.8",
         "org.wso2.msf4j:msf4j-core":                            "2.8.1",
         "com.squareup.okhttp3:okhttp":                          "4.4.0",
@@ -92,10 +93,10 @@ repositories {
     }
     mavenLocal()
     addMaven("https://maven.wso2.org/nexus/content/repositories/public/")
-    addMaven("http://maven.wso2.org/nexus/content/repositories/releases/")
-    addMaven("http://maven.wso2.org/nexus/content/repositories/snapshots/")
-    addMaven("http://maven.wso2.org/nexus/content/groups/wso2-public/")
-    addMaven("http://repo.maven.apache.org/maven2")
+    addMaven("https://maven.wso2.org/nexus/content/repositories/releases/")
+    addMaven("https://maven.wso2.org/nexus/content/repositories/snapshots/")
+    addMaven("https://maven.wso2.org/nexus/content/groups/wso2-public/")
+    addMaven("https://repo.maven.apache.org/maven2")
 
 }
 

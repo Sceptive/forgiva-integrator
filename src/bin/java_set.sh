@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # -----------------------------------------------------------------------------
 #  Set JAVA_HOME or JRE_HOME if not already set, ensure any provided settings
@@ -9,19 +9,19 @@
 # Make sure prerequisite environment variables are set
 if [ -z "$JAVA_HOME" ] && [ -z "$JRE_HOME" ]; then
 # If it is MacOSX
-  if [ "$OSTYPE" == "darwin" ]; then
+  if [[ "$OSTYPE" == "darwin" ]]; then
     if [ -x '/usr/libexec/java_home' ] ; then
       JAVA_HOME=$(/usr/libexec/java_home)
     elif [ -d "/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home" ]; then
       JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home"
     fi
 # Else if it is FreeBSD
-  elif [ "$OSTYPE" == "freebsd" ]; then
+  elif [[ "$OSTYPE" == "freebsd" ]]; then
     if [ -x /usr/local/openjdk8/bin/java ]; then
       JRE_HOME=/usr/local/openjdk8
     fi
 # Else if it is Linux
-  elif [ "$OSTYPE" == "linux-gnu" ]; then
+  elif [[ "$OSTYPE" == "linux-gnu" ]]; then
     if [ -x /usr/lib/jvm/jre/bin/java ]; then
       JRE_HOME=/usr/lib/jvm/jre
     elif [ -x /usr/lib/jvm/jdk/bin/java ]; then

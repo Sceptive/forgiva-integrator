@@ -9,6 +9,7 @@ import com.sceptive.forgiva.integrator.logging.Fatal;
 import com.sceptive.forgiva.integrator.logging.Info;
 import com.sceptive.forgiva.integrator.logging.LogMessageProcessor;
 import com.sceptive.forgiva.integrator.logging.Warning;
+import org.apache.commons.text.StringSubstitutor;
 
 import java.io.File;
 
@@ -70,12 +71,12 @@ public class BSRuntime extends IBootStrap {
     public String  smtp_server_proxy_username              = null;
     public String  smtp_server_proxy_password              = null;
 
-public static final String p_for_testing = "p_for_testing";
+    public static final String p_for_testing = "p_for_testing";
 
 
-public static boolean check_file_exists_and_readable(String _location,
-                                                       String _description,
-                                                       boolean _quit_if_not) {
+    public static boolean check_file_exists_and_readable(String _location,
+                                                           String _description,
+                                                           boolean _quit_if_not) {
 
         File                test_file   = new File(_location);
         LogMessageProcessor processor   = (_quit_if_not ? Fatal.get_instance() : Warning.get_instance());
@@ -102,14 +103,17 @@ public static boolean check_file_exists_and_readable(String _location,
         try {
 
 
-            production_environment      = Configuration.get_property_bool(Constants.CFG_PRODUCTION_ENVIRONMENT);
-            logging_generate_debug_log  = Configuration.get_property_bool(Constants.CFG_LOGGING_GENERATE_DEBUG_LOG);
-            logging_max_file_size       = Configuration.get_property(Constants.CFG_LOGGING_MAX_DEBUG_LOG_SIZE);
-            logging_output_format       = Configuration.get_property(Constants.CFG_LOGGING_OUTPUT_FORMAT);
-            db_jdbc_driver              = Configuration.get_property(Constants.CFG_DB_JDBC_DRIVER);
-            db_jdbc_url                 = Configuration.get_property(Constants.CFG_DB_JDBC_URL);
-            db_jdbc_user                = Configuration.get_property(Constants.CFG_DB_JDBC_USER);
-            db_jdbc_password            = Configuration.get_property(Constants.CFG_DB_JDBC_PASSWORD);
+            production_environment          = Configuration.get_property_bool(Constants.CFG_PRODUCTION_ENVIRONMENT);
+            logging_generate_debug_log      = Configuration.get_property_bool(Constants.CFG_LOGGING_GENERATE_DEBUG_LOG);
+            logging_max_file_size           = Configuration.get_property(Constants.CFG_LOGGING_MAX_DEBUG_LOG_SIZE);
+            logging_output_format           = Configuration.get_property(Constants.CFG_LOGGING_OUTPUT_FORMAT);
+            db_jdbc_driver                  = Configuration.get_property(Constants.CFG_DB_JDBC_DRIVER);
+
+            db_jdbc_url                     = Configuration.get_property(Constants.CFG_DB_JDBC_URL);
+            db_jdbc_url                     = StringSubstitutor.replace(db_jdbc_url,Configuration.dynamic_variables);
+
+            db_jdbc_user                    = Configuration.get_property(Constants.CFG_DB_JDBC_USER);
+            db_jdbc_password                = Configuration.get_property(Constants.CFG_DB_JDBC_PASSWORD);
 
             security_pw_hashing_model       = Configuration.get_property(Constants.CFG_SECURITY_PW_HASHING_MODEL);
             security_pw_hashing_salt        = Configuration.get_property(Constants.CFG_SECURITY_PW_HASHING_SALT);
@@ -127,7 +131,8 @@ public static boolean check_file_exists_and_readable(String _location,
             login_max_retry = Configuration.get_property_int(Constants.CFG_LOGIN_MAX_RETRY);
             login_ban_time  = Configuration.get_property_int(Constants.CFG_LOGIN_BAN_TIME);
 
-            security_ssl_truststore              = Configuration.conf_path + File.separator +  Configuration.get_property(Constants.CFG_SECURITY_SSL_TRUSTSTORE);
+            security_ssl_truststore              = Configuration.conf_path + File.separator
+                                                +  Configuration.get_property(Constants.CFG_SECURITY_SSL_TRUSTSTORE);
             security_ssl_truststore_password     = Configuration.get_property(Constants.CFG_SECURITY_SSL_TRUSTSTORE_PASSWORD);
 
             if (check_file_exists_and_readable(security_ssl_truststore, "SSL TrustStore", false)) {
@@ -138,11 +143,13 @@ public static boolean check_file_exists_and_readable(String _location,
 
             security_pw_prohibited_list     = Configuration.get_property(Constants.CFG_SECURITY_PW_PROHIBITED_WORDLIST);
             //gz / .bz2 / .7z or .xz
-            if (!(security_pw_prohibited_list.toLowerCase().endsWith(".gz") ||
+            if (security_pw_prohibited_list != null &&
+                    !(security_pw_prohibited_list.toLowerCase().endsWith(".gz") ||
                 security_pw_prohibited_list.toLowerCase().endsWith(".bz2") ||
                 security_pw_prohibited_list.toLowerCase().endsWith(".7z") ||
                 security_pw_prohibited_list.toLowerCase().endsWith(".xz"))) {
-                throw new InvalidValueException(String.format("Unsupported wordlist file compression extension: %s",security_pw_prohibited_list));
+                throw new InvalidValueException(String.format("Unsupported wordlist file compression extension: %s"
+                        ,security_pw_prohibited_list));
             }
 
             argon2_parameters           = Configuration.get_property(Constants.CFG_ARGON2_PARAMETERS);
@@ -160,7 +167,8 @@ public static boolean check_file_exists_and_readable(String _location,
 
             https_port                  = Configuration.get_property_int(Constants.CFG_HTTPS_PORT);;
             https_host                  = Configuration.get_property(Constants.CFG_HTTPS_HOST);;
-            https_ssl_keystore_file     = Configuration.conf_path + File.separator + Configuration.get_property(Constants.CFG_HTTPS_SSL_KEYSTORE_FILE);
+            https_ssl_keystore_file     = Configuration.conf_path + File.separator
+                                        + Configuration.get_property(Constants.CFG_HTTPS_SSL_KEYSTORE_FILE);
             https_ssl_keystore_pass     = Configuration.get_property(Constants.CFG_HTTPS_SSL_KEYSTORE_PASS);
             https_ssl_cert_pass         = Configuration.get_property(Constants.CFG_HTTPS_SSL_CERT_PASS);
 

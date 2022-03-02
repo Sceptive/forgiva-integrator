@@ -1,5 +1,6 @@
 **Table of Contents**
 
+- [Overview](#overview)
 - [Logging](#logging)
 - [Database Integration](#database-integration)
 - [Administration](#administration)

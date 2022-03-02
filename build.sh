@@ -16,8 +16,6 @@ WEBCLIENT_DIR=$BUILD_DIR/client/web/
 WEBCLIENT_URL="https://github.com/Sceptive/forgiva-webclient/releases/download/r1-4/forgiva_webclient-r1-4-release.tar.xz"
 WEBCLIENT_SHA256="7047bbc8b375c50c58a9c57e20e73fcc45b88432d8e8ed496cc3b47a2212805b"
 BIN_DIR=$BUILD_DIR/bin/
-DOC_DIR=$BUILD_DIR/doc/
-DOC_SRC_DIR="${FORGIVA_HOME}/src/doc/"
 CONF_FILE="${FORGIVA_HOME}/etc/conf/integrator.conf"
 CONF_FILE_SAMPLE="${FORGIVA_HOME}/etc/conf/integrator.conf.sample"
 
@@ -73,24 +71,7 @@ if [ ! "$*" == "uidev" ]; then
 fi
 
 
-(
- (mkdir -p $DOC_DIR &&
- docker run --rm \
-  -v ${DOC_SRC_DIR}:/data  \
-  -v ${DOC_DIR}:/data_output \
-   --user $(id -u):$(id -g) \
-   pandoc/core \
-  -s -f markdown+auto_identifiers \
-  /data/configuration.md \
-  /data/configuration/logging.md \
-  /data/configuration/database.md \
-  /data/configuration/administration.md \
-  /data/configuration/security.md \
-  /data/configuration/webserver.md \
-  /data/configuration/ldap.md \
-  /data/configuration/mailserver.md \
-  --css /data/style.css --metadata title="Forgiva Integrator Configuration Guide" \
-  --section-divs -o /data_output/forgia_integrator-${VER}configuration.md) || { echo "Could not build user guides please check errors. " ; exit 1  ; })
+
 
 
 if [[ "$*" == *"release"* ]] || [[ "$*" == *"image"* ]]; then

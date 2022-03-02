@@ -67,7 +67,7 @@ Then please redirect your browser to https://localhost:8443 to access Forgiva En
 You can log in into same interface with both administrator and user credentials.
 
 For more details and customization options please refer to the [docker image usage section](CONFIGURATION.md#docker-image-usage) 
-in [configuration](CONFIGURATION.MD) documentation.
+in [configuration](CONFIGURATION.md) documentation.
 
 ## FAQ
 

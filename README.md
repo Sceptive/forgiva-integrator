@@ -163,7 +163,7 @@ On **Intermediate complexity** it will take ~24 million years and on **Advanced 
 
 ## Support
 
-For any support and assistance please get in touch with 
+For any support and assistance please get in touch with Harun Esur at
 
 harun (dot) esur [at] sceptive (dot) com
 or

@@ -479,3 +479,8 @@ is required to use SMTP server to send reset e-mail to user.
 
 ## Support
 
+For any support and assistance please get in touch with Harun Esur at
+
+harun (dot) esur [at] sceptive (dot) com
+or
+harun (dot) kozmot (dot) com

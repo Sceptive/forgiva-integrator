@@ -38,7 +38,7 @@ over such as LDAP, FORHash and  other various integrations.
 You can launch Forgiva Integrator detached quickly with it's container image;
 
 ```shell
-$ docker run -ti -d -p 8443:8443 --name forgiva forgiva-integrator:latest 
+$ docker run -ti -d -p 8443:8443 --name forgiva sceptive/forgiva-integrator:latest 
 ```
 It will be creating random credentials (if defaults is used) for both administrator and user.
 

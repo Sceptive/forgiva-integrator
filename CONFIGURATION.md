@@ -127,7 +127,7 @@ $ ./build.sh image
 
 To run the created forgiva-integrator image
 ```
-$ docker run -p 8443:8443 forgiva-integrator:latest
+$ docker run -p 8443:8443 sceptive/forgiva-integrator:latest
 ```
 
 ## Docker Image Usage
@@ -135,7 +135,7 @@ $ docker run -p 8443:8443 forgiva-integrator:latest
 You can launch Forgiva Integrator detached quickly with its container image;
 
 ```shell
-$ docker run -ti -p 8443:8443 -d --name forgiva forgiva-integrator:latest 
+$ docker run -ti -p 8443:8443 -d --name forgiva sceptive/forgiva-integrator:latest 
 ```
 It will be creating random credentials (if defaults is used) for both administrator and user.
 
@@ -168,7 +168,7 @@ To customize configuration you can set either
 docker run -ti -d -p 8443:8443 \
       -v <configuration-path>:/opt/forgiva-integrator/conf \
       --name forgiva \
-      forgiva-integrator:latest 
+      sceptive/forgiva-integrator:latest 
 ```
 
 * change configuration path with environment variable FORGIVA_INTEGRATOR_CONF_LOCATION to a mounted directory including
@@ -179,14 +179,14 @@ docker run -ti -d -p 8443:8443 \
       -e FORGIVA_INTEGRATOR_CONF_LOCATION=/etc/forgiva
       -v <configuration-path>:/etc/forgiva \
       --name forgiva \
-      forgiva-integrator:latest 
+      sceptive/forgiva-integrator:latest 
 ```
 The key file for configuration is **integrator.conf** located within **conf** directory. To fully customize all 
 variables Forgiva Integrator using you should just clone and edit the **integrator.conf** and mount it along with the 
 custom configuration path.
 
 ```shell
-$ docker run --ti -d --name forgiva forgiva-integrator:latest
+$ docker run --ti -d --name forgiva sceptive/forgiva-integrator:latest
 $ mkdir custom
 $ docker cp forgiva:/opt/forgiva-integrator/conf/ custom
 $ vi custom/integrator.conf
@@ -194,7 +194,7 @@ $ # Make relevant changes
 $ docker stop forgiva && docker rm forgiva
 $ docker run -ti -d <other-configuration-options> -v $(pwd)/custom/:/opt/forgiva-integrator/conf \
       --name forgiva \
-      forgiva-integrator:latest 
+      sceptive/forgiva-integrator:latest 
 ```
 You can additionally redirect default H2 database file to a host directory to backup manually or protect out with 
 -just like conf directory specification- either changing environment variable **FORGIVA_INTEGRATOR_DATA_LOCATION**
@@ -206,7 +206,7 @@ For example:
 docker run -ti -d <other-configuration-options> \
       -v <host-path>:/opt/forgiva-integrator/data \
       --name forgiva \
-      forgiva-integrator:latest
+      sceptive/forgiva-integrator:latest
 ```
 
 ## Environment variables
@@ -257,7 +257,7 @@ $ docker run -ti -d <other-configuration-options> \
       -v forgiva-data:/opt/forgiva-integrator/data \
       -v forgiva-conf:/opt/forgiva-integrator/conf \
       --name forgiva \
-      forgiva-integrator:latest
+      sceptive/forgiva-integrator:latest
 ```
 
 To backup to any target over Volumerize you can refer to the backup container startup command example below;

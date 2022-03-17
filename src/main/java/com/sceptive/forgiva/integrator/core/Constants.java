@@ -121,27 +121,32 @@ public class Constants {
         public String key;
         public String default_value;
         public Class  type;
+        public boolean hidden;
 
-        public user_setting(String key, String default_value, Class type) {
+        public user_setting(String key, String default_value, Class type, boolean _hidden) {
             this.key = key;
             this.default_value = default_value;
             this.type = type;
+            this.hidden = _hidden;
         }
     }
 
     public final static String CONST_US_KEY_MUI = "masterkey_use_ignored";
+    public final static String CONST_US_2FA_COD = "2fa_sotp_code";
 
     public final static user_setting USER_SETTINGS[] = new user_setting[]{
             // Do not scramble animal positions randomly (Less secure)
-            new user_setting("animals_do_not_scramble", "false", Boolean.class),
+            new user_setting("animals_do_not_scramble", "false", Boolean.class, false),
             // Use my login password as master key (Less secure)
-            new user_setting(CONST_US_KEY_MUI,  "false", Boolean.class),
+            new user_setting(CONST_US_KEY_MUI,  "false", Boolean.class,false),
             // Ask master key once when regenerating password
-            new user_setting("masterkey_ask_once", "false", Boolean.class),
+            new user_setting("masterkey_ask_once", "false", Boolean.class,false),
             // Always show passwords rather than copying to clipboard
-            new user_setting("password_always_show_not_copy", "true", Boolean.class),
-            new user_setting("password_default_length", "16", Integer.class),  // Default password length
-            new user_setting("password_default_complexity", "1", Integer.class) };
+            new user_setting("password_always_show_not_copy", "true", Boolean.class,false),
+            new user_setting("password_default_length", "16", Integer.class,false),  // Default password length
+            new user_setting("password_default_complexity", "1", Integer.class,false),
+            new user_setting(CONST_US_2FA_COD, "", String.class,true)
+    };
 
     public static user_setting setting_by_name(String _name) {
 

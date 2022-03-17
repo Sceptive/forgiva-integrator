@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sceptive.forgiva.integrator.Main;
 import com.sceptive.forgiva.integrator.core.BootStrapper;
 import com.sceptive.forgiva.integrator.core.Database;
+import com.sceptive.forgiva.integrator.core.GOtp;
 import com.sceptive.forgiva.integrator.core.crypto.*;
 import com.sceptive.forgiva.integrator.core.db.objects.EUser;
 import com.sceptive.forgiva.integrator.logging.Debug;
@@ -16,6 +17,8 @@ import org.testng.Assert;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -238,6 +241,92 @@ static PostLoginResponse login(AsymmetricKeyPair _client_kp,
                                                                                          PostLoginResponse.class);
     return plresponse;
 }
+
+static void disable_2fa(AsymmetricKeyPair _client_kp, PostNewSessionResponse _p_nsr,
+                        String _sotp_code) throws Exception {
+
+    String val_code = GOtp.gotp_code(_sotp_code);
+    String e_val_code = Common.encodeHex(Asymmetric.encrypt_using_keypair(val_code.getBytes(),
+            Asymmetric.init_cipherkeypair(_p_nsr.getSessionPk(),
+                    Common.encodeHex(_client_kp.getPrivateKey()))));
+
+    PostUser2faDisableRequest disableRequest = new PostUser2faDisableRequest()
+            .header(new Header().sessionId(_p_nsr.getNewSessionId()))
+            .validationCode(e_val_code);
+
+    SimpleResponse sr = HttpsClient.post_api("/user/2fa/disable",
+            General.omapper.writeValueAsString(disableRequest));
+
+    String response = sr.getBody();
+    Assert.assertNotNull(response);
+    OperationResult plresponse = response.isEmpty() ? null : General.omapper.readValue(response,
+            OperationResult.class);
+
+
+    Assert.assertNull(plresponse.getError());
+
+
+
+}
+
+static String enable_2fa(AsymmetricKeyPair _client_kp, PostNewSessionResponse _p_nsr) throws Exception {
+
+    String sotp_code =  GOtp.generate_random_secret(SecureRandom.getInstanceStrong());
+    String e_sotp_code = Common.encodeHex(Asymmetric.encrypt_using_keypair(sotp_code.getBytes(),
+            Asymmetric.init_cipherkeypair(_p_nsr.getSessionPk(),
+                    Common.encodeHex(_client_kp.getPrivateKey()))));
+
+    String val_code = GOtp.gotp_code(sotp_code);
+    String e_val_code = Common.encodeHex(Asymmetric.encrypt_using_keypair(val_code.getBytes(),
+            Asymmetric.init_cipherkeypair(_p_nsr.getSessionPk(),
+                    Common.encodeHex(_client_kp.getPrivateKey()))));
+    PostUser2faEnableRequest enableRequest = new PostUser2faEnableRequest()
+            .header(new Header().sessionId(_p_nsr.getNewSessionId()))
+            .sotpCode(e_sotp_code)
+            .validationCode(e_val_code);
+
+    SimpleResponse sr = HttpsClient.post_api("/user/2fa/enable",
+            General.omapper.writeValueAsString(enableRequest));
+
+    String response = sr.getBody();
+    Assert.assertNotNull(response);
+    OperationResult plresponse = response.isEmpty() ? null : General.omapper.readValue(response,
+            OperationResult.class);
+
+
+    Assert.assertNull(plresponse.getError());
+
+    return sotp_code;
+}
+
+
+static PostLogin2faResponse login2fa(AsymmetricKeyPair _client_kp,
+                                     PostNewSessionResponse _p_nsr,
+                                     String _sotp_code) throws Exception {
+
+    String val_code = GOtp.gotp_code(_sotp_code);
+    String e_val_code = Common.encodeHex(Asymmetric.encrypt_using_keypair(val_code.getBytes(),
+            Asymmetric.init_cipherkeypair(_p_nsr.getSessionPk(),
+                    Common.encodeHex(_client_kp.getPrivateKey()))));
+
+    PostLogin2faRequest postLogin2faRequest = new PostLogin2faRequest()
+            .header(new Header().sessionId(_p_nsr.getNewSessionId()))
+            .twoFACode(e_val_code);
+
+    SimpleResponse sr = HttpsClient.post_api("/login2fa",
+            General.omapper.writeValueAsString(postLogin2faRequest));
+    String response = sr.getBody();
+    Assert.assertNotNull(response);
+
+    PostLogin2faResponse postLogin2faResponse = response.isEmpty() ? null : General.omapper.readValue(response,
+            PostLogin2faResponse.class);
+
+
+    Assert.assertTrue(postLogin2faResponse != null && postLogin2faResponse.getAuthenticated());
+
+    return postLogin2faResponse;
+}
+
 
 /**
  * Logs out specific session

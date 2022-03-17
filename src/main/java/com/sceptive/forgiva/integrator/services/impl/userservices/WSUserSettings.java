@@ -16,6 +16,45 @@ import javax.persistence.NoResultException;
 import javax.ws.rs.core.Response;
 
 public class WSUserSettings {
+
+
+    public static boolean settings_set_ex(long _userId,
+                                            String _key,
+                                            String _new_value) throws Exception {
+
+
+        EntityManager em = Database.get_instance().getEm();
+        EUserSetting usetting;
+        try {
+            usetting = em.createQuery(
+                            "SELECT m FROM EUserSetting m WHERE " + " m.userId = :userId " +
+                                    " AND m.key = :key", EUserSetting.class)
+                    .setParameter("userId", _userId)
+                    .setParameter("key", _key)
+                    .getSingleResult();
+
+            usetting.value   = _new_value;
+            em.getTransaction().begin();
+            em.merge(usetting);
+            em.getTransaction().commit();
+        }
+        catch (NoResultException _nre) {
+            usetting         = new EUserSetting();
+            usetting.userId  = _userId;
+            usetting.key     = _key;
+            usetting.value   = _new_value;
+
+            em.getTransaction().begin();
+            em.persist(usetting);
+            em.getTransaction().commit();
+        }
+
+
+        em.close();
+
+
+        return true;
+    }
     /**
      *
      * Sets user's settings regarding key-value couple of setting preference
@@ -38,12 +77,11 @@ public class WSUserSettings {
                 if (key == null ||
                     _request.getValue() == null ||
                         ((setting = Constants.setting_by_name(key)) == null) ||
-                    _request.getValue().trim().length() == 0
+                    _request.getValue().trim().length() == 0 ||
+                        setting.hidden
                     ) {
                     throw new InvalidValueException("Request contains invalid data");
                 }
-
-
 
                 String save_value = _request.getValue();
 
@@ -54,34 +92,7 @@ public class WSUserSettings {
                     save_value = Integer.toString(Integer.parseInt(save_value));
                 }
 
-                EntityManager em     = Database.get_instance().getEm();
-                EUserSetting usetting;
-                try {
-                    usetting = em.createQuery(
-                                    "SELECT m FROM EUserSetting m WHERE " + " m.userId = :userId " +
-                                            " AND m.key = :key", EUserSetting.class)
-                            .setParameter("userId", session.user_id)
-                            .setParameter("key", key)
-                            .getSingleResult();
-
-                    usetting.value   = save_value;
-                    em.getTransaction().begin();
-                    em.merge(usetting);
-                    em.getTransaction().commit();
-                }
-                 catch (NoResultException _nre) {
-                     usetting         = new EUserSetting();
-                     usetting.userId  = session.user_id;
-                     usetting.key     = key;
-                     usetting.value   = save_value;
-
-                     em.getTransaction().begin();
-                     em.persist(usetting);
-                     em.getTransaction().commit();
-                }
-
-
-                em.close();
+                settings_set_ex(session.user_id, key, save_value);
 
                 response.setInfo("Ok");
 
@@ -124,6 +135,8 @@ public class WSUserSettings {
         } catch (NoResultException _nre) {
             ret = setting.default_value;
         }
+
+        em.close();
 
         return ret;
     }

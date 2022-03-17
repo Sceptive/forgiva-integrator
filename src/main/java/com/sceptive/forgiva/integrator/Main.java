@@ -71,6 +71,7 @@ public static void run() throws Exception {
         Object[]            api_services = new Object[] {
                 new LoginApi(),
                 new LogoutApi(),
+                new Login2faApi(),
                 new NewSessionApi(),
                 new UserApi(),
                 new AdminApi()            

@@ -3,6 +3,7 @@ package com.sceptive.forgiva.integrator.services.impl;
 import com.sceptive.forgiva.integrator.core.Configuration;
 import com.sceptive.forgiva.integrator.core.Constants;
 import com.sceptive.forgiva.integrator.core.Database;
+import com.sceptive.forgiva.integrator.core.GOtp;
 import com.sceptive.forgiva.integrator.core.crypto.Asymmetric;
 import com.sceptive.forgiva.integrator.core.crypto.AsymmetricKeyPair;
 import com.sceptive.forgiva.integrator.core.crypto.Common;
@@ -20,10 +21,12 @@ import com.sceptive.forgiva.integrator.services.SecurityManager;
 import com.sceptive.forgiva.integrator.services.SecurityPermission;
 import com.sceptive.forgiva.integrator.services.gen.api.NotFoundException;
 import com.sceptive.forgiva.integrator.services.gen.model.*;
+import com.sceptive.forgiva.integrator.services.impl.userservices.WSUserSettings;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.ws.rs.core.Response;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -372,10 +375,17 @@ public static Response login(PostLoginRequest _postLoginRequest) throws NotFound
                         // If there is user with specified password
                         else {
                             EUser user = ((EUser) res.get(0));
+
+                            String sotp_code       = WSUserSettings.settings_get_ex(user.id, Constants.CONST_US_2FA_COD);
+                            TwoFactorAuth_required = (sotp_code != null && !sotp_code.isEmpty());
+
                             em.getTransaction()
                               .begin();
-                            sp.session.authenticated         = true;
-                            sp.session.auth_ts               = LocalDateTime.now();
+                            sp.session.authenticated         = !TwoFactorAuth_required;
+                            sp.session.twofa_expected        = TwoFactorAuth_required;
+                            if (!TwoFactorAuth_required) {
+                                sp.session.auth_ts = LocalDateTime.now();
+                            }
                             sp.session.administrator_session = false;
                             sp.session.user_id               = user.id;
                             em.merge(sp.session);
@@ -383,21 +393,23 @@ public static Response login(PostLoginRequest _postLoginRequest) throws NotFound
                               .commit();
                             // Set response as authenticated as normal user
                             sp.response =
-                                    Response.ok(new PostLoginResponse().twoFARequired(TwoFactorAuth_required)
-                                                                       .logonState(new LogonState().authenticated(true)
-                                                                                                   .isAdmin(false)))
+                                    Response.ok(new PostLoginResponse().twoFARequired(sp.session.twofa_expected)
+                                                                       .logonState(new LogonState()
+                                                                               .authenticated(sp.session.authenticated)
+                                                                               .isAdmin(false)))
                                             .build();
-                            Info.get_instance()
-                                .print("%s logged in session id: %s",
-                                       user.username,
-                                       sp.session.id);
-                            // Store successful login
-                            store_login_attempt(decrypted_username,true);
+
+                            if (sp.session.authenticated) {
+                                Info.get_instance()
+                                        .print("%s logged in session id: %s",
+                                                user.username,
+                                                sp.session.id);
+                                // Store successful login
+                                store_login_attempt(decrypted_username,true);
+                            }
+
                         }
-                        if (sp.session != null && sp.session.authenticated != null &&
-                            !sp.session.authenticated.booleanValue() && TwoFactorAuth_required) {
-                            //TODO: Implement 2FA model
-                        }
+
                     }
                 }
                 catch (Exception e) {
@@ -427,9 +439,77 @@ public static Response logout(PostLogoutRequest _postLogoutRequest) {
                    .build();
 }
 
-public static Response login_2fa(PostLogin2faRequest _postLogin2faRequest)
-        throws NotFoundException {
-    throw new NotFoundException(404,
-                                "Not Implemented");
+public static Response login_2fa(PostLogin2faRequest _postLogin2faRequest) {
+
+    // Get security permissions
+    SecurityPermission sp = SecurityManager.validate_session(_postLogin2faRequest.getHeader());
+
+    if (sp.session != null &&
+            sp.session.twofa_expected &&
+            _postLogin2faRequest.getTwoFACode() != null &&
+            !_postLogin2faRequest.getTwoFACode().isEmpty()) {
+
+        try {
+            String sotp_code;
+            // If any of the parameters is empty
+            // Or 2FA is not set
+            if (
+                    (sotp_code = WSUserSettings.settings_get_ex(sp.session.user_id,
+                            Constants.CONST_US_2FA_COD)).isEmpty()
+            ) {
+                throw new InvalidValueException("Request contains invalid data");
+            }
+
+            byte[] decrypted_valc = Asymmetric.decrypt_using_session(
+                    Common.decodeHex(_postLogin2faRequest.getTwoFACode()), sp.session);
+            String valc = new String(decrypted_valc, StandardCharsets.UTF_8);
+
+            if (GOtp.gotp_code(sotp_code).equalsIgnoreCase(valc)) {
+
+                EntityManager em = Database.get_instance()
+                        .getEm();
+
+                EUser user = (EUser) em.createQuery("SELECT u FROM EUser u WHERE " +
+                                " u.id = :id AND " +
+                                " u.externalUser = false")
+                        .setParameter("id",
+                                sp.session.user_id)
+                        .getSingleResult();
+
+                em.getTransaction()
+                        .begin();
+                sp.session.authenticated         = true;
+                sp.session.twofa_expected        = false;
+                sp.session.auth_ts               = LocalDateTime.now();
+                sp.session.administrator_session = false;
+                em.merge(sp.session);
+                em.getTransaction()
+                        .commit();
+                // Set response as authenticated as normal user
+                sp.response =
+                        Response.ok(new PostLogin2faResponse().authenticated(true))
+                                .build();
+
+                if (sp.session.authenticated) {
+                    Info.get_instance()
+                            .print("%s logged in session id: %s",
+                                    user.username,
+                                    sp.session.id);
+                    // Store successful login
+                    store_login_attempt(user.username,true);
+                }
+
+            }
+
+            return sp.response;
+
+        } catch (Exception _e) {
+            Warning.get_instance().print(_e);
+        }
+    }
+
+    return Response.ok(new PostLogin2faResponse().authenticated(false))
+            .build();
 }
+
 }

@@ -64,7 +64,8 @@ private static Double cpu_usage_between_datetime(
 
     try {
         Double val = (Double) em.createQuery("SELECT AVG(m.value) FROM EStatistics m " +
-                                             " WHERE m.action_time > :start AND m.action_time < :end AND m.key = :key  GROUP BY m.key")
+                                                " WHERE m.action_time > :start AND m.action_time < :end  " +
+                                                " AND m.key = :key GROUP BY m.key")
                                 .setParameter("start",
                                               _start)
                                 .setParameter("end",
@@ -136,7 +137,8 @@ public static Response get_resource_usages(PostAdminResourceusageRequest _reques
 
         for (int i=24*60;i>0;i-=byhour_granularity_in_minutes) {
 
-            LocalDateTime start = now.minusMinutes(i+byhour_granularity_in_minutes);// Hours(i+1).withMinute(0).withSecond(0);
+            LocalDateTime start = now.minusMinutes(i+byhour_granularity_in_minutes);
+                // Hours(i+1).withMinute(0).withSecond(0);
             LocalDateTime end   = now.minusMinutes(i);
 
             Double cpuUsageByHour = cpu_usage_between_datetime(start,end);
@@ -156,7 +158,8 @@ public static Response get_resource_usages(PostAdminResourceusageRequest _reques
 
         for (int i=24*60*7;i>0;i-=byday_granularity_in_minutes) {
 
-            LocalDateTime start = now.minusMinutes(i+byday_granularity_in_minutes);// Hours(i+1).withMinute(0).withSecond(0);
+            LocalDateTime start = now.minusMinutes(i+byday_granularity_in_minutes);
+                // Hours(i+1).withMinute(0).withSecond(0);
             LocalDateTime end   = now.minusMinutes(i);
 
             Double cpuUsageByDay = cpu_usage_between_datetime(start,end);

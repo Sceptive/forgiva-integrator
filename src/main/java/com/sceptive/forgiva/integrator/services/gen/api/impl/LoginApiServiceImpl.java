@@ -14,7 +14,7 @@ import javax.ws.rs.core.Response;
 public class LoginApiServiceImpl extends LoginApiService {
     @Override
     public Response postLogin(PostLoginRequest postLoginRequest
- ) throws NotFoundException {
-       return SessionServices.login(postLoginRequest);
+    ) throws NotFoundException {
+        return SessionServices.login(postLoginRequest);
     }
 }

@@ -21,6 +21,16 @@ import javax.ws.rs.core.Response;
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaMSF4JServerCodegen", date = "2020-02-26T13:56:36.662+03:00[Europe/Istanbul]")
 public class UserApiServiceImpl extends UserApiService {
     @Override
+    public Response postUser2faDisable(PostUser2faDisableRequest postUser2faDisableRequest) throws NotFoundException {
+        return WS2Fa.user_2fa_disable(postUser2faDisableRequest);
+    }
+
+    @Override
+    public Response postUser2faEnable(PostUser2faEnableRequest postUser2faEnableRequest) throws NotFoundException {
+        return WS2Fa.user_2fa_enable(postUser2faEnableRequest);
+    }
+
+    @Override
     public Response postUserBackupExport(PostUserBackupExportRequest postUserBackupExportRequest) throws NotFoundException {
         return WSBackup.export_service(postUserBackupExportRequest);
     }
@@ -32,18 +42,18 @@ public class UserApiServiceImpl extends UserApiService {
 
     @Override
     public Response postUserGenerate(PostUserGenerateRequest postUserGenerateRequest
- ) throws NotFoundException {
+    ) throws NotFoundException {
         return WSGeneratePassword.generate_password(postUserGenerateRequest);
     }
 
     @Override
     public Response postUserMetadataAdd(PostUserMetadataAddRequest postUserMetadataAddRequest
- ) throws NotFoundException {
+    ) throws NotFoundException {
         return WSMetadata.add_metadata(postUserMetadataAddRequest);
     }
     @Override
     public Response postUserMetadataBygroup(PostUserMetadataBygroupRequest postUserMetadataBygroupRequest
- ) throws NotFoundException {
+    ) throws NotFoundException {
         return WSMetadata.get_metadata_bygroupId(postUserMetadataBygroupRequest);
     }
 
@@ -54,30 +64,29 @@ public class UserApiServiceImpl extends UserApiService {
 
     @Override
     public Response postUserMetadataGroupRemove(PostUserMetadataGroupRemoveRequest postUserMetadataGroupRemoveRequest
- ) throws NotFoundException {
-       return WSMetadataGroup.remove_metadatagroup(postUserMetadataGroupRemoveRequest);
+    ) throws NotFoundException {
+        return WSMetadataGroup.remove_metadatagroup(postUserMetadataGroupRemoveRequest);
     }
     @Override
     public Response postUserMetadataGroups(PostUserMetadataGroupsRequest postUserMetadataGroupsRequest
- ) throws NotFoundException {
-       return WSMetadataGroup.get_metadata_groups(postUserMetadataGroupsRequest);
+    ) throws NotFoundException {
+        return WSMetadataGroup.get_metadata_groups(postUserMetadataGroupsRequest);
     }
     @Override
     public Response postUserMetadataHost(PostUserMetadataHostRequest postUserMetadataHostRequest
- ) throws NotFoundException {
+    ) throws NotFoundException {
         return WSMetadata.get_metadata_hosts(postUserMetadataHostRequest);
     }
     @Override
     public Response postUserMetadataRemove(PostUserMetadataRemoveRequest postUserMetadataRemoveRequest
- ) throws NotFoundException {
+    ) throws NotFoundException {
         return WSMetadata.remove_metadata(postUserMetadataRemoveRequest);
     }
 
-
     @Override
     public Response postUserMetadataSearch(PostUserMetadataSearchRequest postUserMetadataSearchRequest
- ) throws NotFoundException {
-       return WSMetadata.search_metadata(postUserMetadataSearchRequest);
+    ) throws NotFoundException {
+        return WSMetadata.search_metadata(postUserMetadataSearchRequest);
     }
 
     @Override

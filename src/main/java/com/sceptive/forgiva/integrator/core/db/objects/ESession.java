@@ -27,6 +27,7 @@ public class ESession {
         ret.id                      = sequence.generate();
         ret.init_ts                 = LocalDateTime.now();
         ret.administrator_session   = false;
+        ret.twofa_expected          = false;
 
         AsymmetricKeyPair ackp =  Asymmetric.generate_asymmetric_key_pairs();
 
@@ -64,6 +65,9 @@ public class ESession {
 
     @Column(name = "client_pubk")
     public String client_public_key;
+
+    @Column(name = "twofa_expected")
+    public Boolean twofa_expected;
 
 
 }

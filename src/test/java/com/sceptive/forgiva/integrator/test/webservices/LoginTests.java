@@ -3,10 +3,7 @@ package com.sceptive.forgiva.integrator.test.webservices;
 import com.sceptive.forgiva.integrator.core.crypto.AsymmetricKeyPair;
 import com.sceptive.forgiva.integrator.core.crypto.Common;
 import com.sceptive.forgiva.integrator.logging.Info;
-import com.sceptive.forgiva.integrator.services.gen.model.Header;
-import com.sceptive.forgiva.integrator.services.gen.model.PostLoginResponse;
-import com.sceptive.forgiva.integrator.services.gen.model.PostNewSessionRequest;
-import com.sceptive.forgiva.integrator.services.gen.model.PostNewSessionResponse;
+import com.sceptive.forgiva.integrator.services.gen.model.*;
 import com.sceptive.forgiva.integrator.test.HttpsClient;
 import com.sceptive.forgiva.integrator.test.IFTests;
 import org.testng.Assert;
@@ -104,6 +101,60 @@ public void test_login() {
         // Should get logged in
         Assert.assertTrue(p_lr3.getLogonState() != null &&  p_lr3.getLogonState().getAuthenticated());
         Assert.assertFalse(p_lr3.getLogonState() != null && p_lr3.getLogonState().getIsAdmin());
+
+        // ************************************************************ //
+        // Enabling 2FA
+        // ************************************************************ //
+        String sotp_code = General.enable_2fa(client_kps,p_nsr);
+
+        Info.get_instance()
+                        .print("Enabling 2FA for %s : %s",p_nsr.getNewSessionId(), sotp_code);
+
+        Assert.assertNotNull(sotp_code);
+        General.logout(p_nsr);
+
+        // Trying to re-login
+        p_nsr = General.get_new_session(client_kps.getPublicKey());
+        PostLoginResponse p_lr4 = General.login(client_kps,
+                "test_user",
+                "development",
+                p_nsr);
+        Assert.assertNotNull(p_lr4);
+        // Should not get authenticated and demanding 2FA login
+        Assert.assertTrue(p_lr4.getLogonState() != null &&  !p_lr4.getLogonState().getAuthenticated());
+        Assert.assertTrue(p_lr4.getLogonState() != null && p_lr4.getTwoFARequired());
+
+        // Login 2FA
+        PostLogin2faResponse p_2faresp = General.login2fa(client_kps, p_nsr, sotp_code);
+        Assert.assertNotNull(p_2faresp);
+
+        Info.get_instance()
+                .print("Logging in with 2FA for %s : %s",p_nsr.getNewSessionId(),sotp_code);
+
+
+        // ************************************************************ //
+        // Disabling 2FA
+        // ************************************************************ //
+        General.disable_2fa(client_kps,p_nsr,sotp_code);
+
+        Info.get_instance()
+                .print("Disabling 2FA for %s : %s",p_nsr.getNewSessionId(),sotp_code);
+
+
+        General.logout(p_nsr);
+
+        // Re logging in without requiring 2FA
+        // Trying to re-login
+        p_nsr = General.get_new_session(client_kps.getPublicKey());
+        PostLoginResponse p_lr5 = General.login(client_kps,
+                "test_user",
+                "development",
+                p_nsr);
+        Assert.assertNotNull(p_lr5);
+        // Should not get authenticated and demanding 2FA login
+        Assert.assertTrue(p_lr5.getLogonState() != null &&  p_lr5.getLogonState().getAuthenticated());
+        Assert.assertTrue(p_lr5.getLogonState() != null && !p_lr5.getTwoFARequired());
+
     }
     catch (Exception e) {
         e.printStackTrace();

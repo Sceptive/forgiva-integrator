@@ -19,6 +19,6 @@ public class NewSessionApiServiceImpl extends NewSessionApiService {
     @Override
     public Response postNewSession(PostNewSessionRequest postNewSessionRequest) throws NotFoundException {
 
-       return SessionServices.newsession(postNewSessionRequest);
+        return SessionServices.newsession(postNewSessionRequest);
     }
 }

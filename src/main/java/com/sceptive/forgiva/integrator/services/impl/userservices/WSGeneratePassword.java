@@ -51,7 +51,6 @@ public class WSGeneratePassword {
                                 throw new Exception("No master key");
                             }
 
-
                             EUser u = (EUser) em.createQuery("SELECT u FROM EUser u WHERE " +
                                             " u.id = :id ")
                                     .setParameter("id",
@@ -70,19 +69,23 @@ public class WSGeneratePassword {
                         }
 
 
-
-                        Long mId  = Long.parseLong(_postUserGenerateRequest.getMetadataId());
-                        EMetadata metadata = em.createQuery(
+                        /**
+                         * Get full metadata from database
+                         */
+                        Long mId            = Long.parseLong(_postUserGenerateRequest.getMetadataId());
+                        EMetadata metadata  = em.createQuery(
                                 "SELECT m FROM EMetadata m WHERE " + " m.userId = :userId " +
                                 " AND m.id = :mId", EMetadata.class)
                                                 .setParameter("userId", session.user_id)
                                                 .setParameter("mId", mId)
                                                 .getSingleResult();
 
-                        boolean[]       executed = new boolean[] { false };
-                        boolean[]       has_error = new boolean[] { false };
-                        final String[]  generated = new String[] { ""};
+                        boolean[]       executed    = new boolean[] { false };
+                        boolean[]       has_error   = new boolean[] { false };
+                        final String[]  generated    = new String[] { ""};
 
+                        // Update state if wanted
+                        // TODO: Maybe renewal metadata history is needed
                         if (_postUserGenerateRequest.getRenewalDate() != null) {
                             metadata.lastRenewal = _postUserGenerateRequest.getRenewalDate();
                         }
@@ -98,7 +101,6 @@ public class WSGeneratePassword {
                         em.close();
 
                         ret.setResult(new OperationResult().info("ok"));
-
 
                         ForgivaServerInvoker.get_instance().execute(metadata,
                                                                     _postUserGenerateRequest.getVisualConfirmation(),
@@ -131,10 +133,10 @@ public class WSGeneratePassword {
                             throw new Exception("Password generation failed");
                         }
 
-                        byte[] encrypted_password = Asymmetric.encrypt_using_session( Common.decodeHex(generated[0]),session);
+                        byte[] encrypted_password = Asymmetric
+                                                    .encrypt_using_session( Common.decodeHex(generated[0]),session);
 
                         ret.setGeneratedPassword(Common.encodeHex(encrypted_password));
-
 
                     } catch (Exception ex) {
                         ret.setResult(new OperationResult().error("Invalid data"));

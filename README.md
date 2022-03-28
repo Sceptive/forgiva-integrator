@@ -158,7 +158,7 @@ On **Intermediate complexity** it will take ~24 million years and on **Advanced 
 - Biometric fingerprinting 
 - SIEM integrations
 - Mobile interfaces
-- 2FA login
++[DONE] 2FA login
 - Password reset functionality
 
 ## Support
